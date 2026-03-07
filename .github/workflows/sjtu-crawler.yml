@@ -1,0 +1,40 @@
+name: SJTU体育场地数据同步
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+jobs:
+  scrape-and-update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+
+      - name: 设置Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 安装依赖
+        run: |
+          pip install playwright requests
+          playwright install chromium --with-deps
+
+      - name: 运行爬虫
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          SCRIPT=$(find . -name "sjtu_crawler_auto.py" -type f | head -1)
+          SCRIPT_DIR=$(dirname "$SCRIPT")
+          cd "$SCRIPT_DIR"
+          python3 sjtu_crawler_auto.py
+
+      - name: 上传数据作为artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: venue-data
+          path: ${{ github.workspace }}/**/output/all_venues_booking_data.json
