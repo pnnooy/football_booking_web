@@ -156,8 +156,10 @@ const currentTime = ref('')
 // 页面加载状态
 const isLoading = ref(true)
 
-// 随机背景图片
+// 背景图片
 const bgImages = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg', 'bg7.jpg']
+// 主页面可用的背景图片（排除bg1.jpg）
+const mainPageBgImages = ['bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg', 'bg7.jpg']
 const currentBgImage = ref('')
 
 // 场地实际状态数据（从time_slots表获取）
@@ -309,9 +311,9 @@ const dateList = computed(() => {
 
 // 初始化 selectedDate 为今天
 onMounted(() => {
-  // 随机选择背景图片
-  const randomIndex = Math.floor(Math.random() * bgImages.length)
-  currentBgImage.value = bgImages[randomIndex]
+  // 随机选择主页面背景图片（排除bg1.jpg）
+  const randomIndex = Math.floor(Math.random() * mainPageBgImages.length)
+  currentBgImage.value = mainPageBgImages[randomIndex]
 
   const today = new Date()
   const month = today.getMonth() + 1
