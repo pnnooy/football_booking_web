@@ -1,16 +1,94 @@
----
-AIGC:
-    ContentProducer: Minimax Agent AI
-    ContentPropagator: Minimax Agent AI
-    Label: AIGC
-    ProduceID: "00000000000000000000000000000000"
-    PropagateID: "00000000000000000000000000000000"
-    ReservedCode1: 304502207bec7d9ef146a4063fe0155f6476c27a258c78f0d31ea41c0bc4fba7891565bc022100da3b89372c16012887a946902ecf0f7a0127c4e93a38f16ae1b8d597ea39560e
-    ReservedCode2: 3046022100cf025368802b77fc28349f617697c475bc3084ba456f07190325935ea83b2d4f022100abaaa50a1ddf6710fdf46695f669fbf4f1240ddbdc967f82c9cb89bf47607b81
----
+# 足球场地预约看板
 
-# Vue 3 + Vite
+一个简洁美观的足球场地预约情况看板系统，帮助你快速查看和预约足球场地。
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+## 功能特性
 
-Learn more about IDE Support for Vue in the [Vue Docs Scaling up Guide](https://vuejs.org/guide/scaling-up/tooling.html#ide-support).
+- 📅 **日期选择** - 支持查看未来8天的场地预约情况
+- ⚽ **笼式足球场** - 专注于笼式足球场预约
+- 🌤️ **天气预报** - 集成和风天气API，显示7日预报和逐小时天气
+- 🔒 **密码保护** - 预约和取消操作需要管理员密码
+- ✍️ **备注功能** - 长按时段可添加备注信息
+- 🔄 **实时同步** - Supabase实时数据同步
+- 🐛 **爬虫同步** - GitHub Actions自动爬取场地状态
+
+## 技术栈
+
+- **前端框架**: Vue 3 + Vite
+- **后端服务**: Supabase
+- **天气服务**: 和风天气API
+- **部署平台**: Vercel
+- **爬虫**: Python + Playwright
+
+## 快速开始
+
+### 安装依赖
+
+```bash
+npm install
+```
+
+### 开发模式
+
+```bash
+npm run dev
+```
+
+### 构建生产版本
+
+```bash
+npm run build
+```
+
+### 预览生产版本
+
+```bash
+npm run preview
+```
+
+## 项目配置
+
+### Supabase配置
+
+需要配置以下环境变量：
+
+```
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 天气API配置
+
+使用和风天气API，已配置：
+- API Key: 内置
+- API Host: 自定义域名
+
+## 数据库结构
+
+### bookings表
+用户预约记录表
+
+### time_slots表
+爬虫同步的场地实际状态表
+
+详细的数据库脚本请查看项目根目录下的SQL文件。
+
+## GitHub Actions爬虫
+
+项目包含自动爬虫工作流，定期同步场地状态到Supabase。
+
+爬虫配置位于：`.github/workflows/`
+
+爬虫代码位于：`sjtu_crawler_auto.py`
+
+## 部署
+
+项目已配置Vercel自动部署，推送到main分支会自动触发部署。
+
+## 许可证
+
+MIT License
+
+## 项目链接
+
+- GitHub仓库: https://github.com/pnnooy/football_booking_web
