@@ -46,9 +46,6 @@ BASE_URL = 'https://sports.sjtu.edu.cn'
 def save_to_supabase(time_slots_data):
     """使用REST API保存时段数据到Supabase"""
     try:
-        # 先删除旧数据（当天及之前的）
-        today = datetime.now().strftime('%Y-%m-%d')
-
         headers = {
             'apikey': SUPABASE_KEY,
             'Authorization': f'Bearer {SUPABASE_KEY}',
@@ -56,15 +53,20 @@ def save_to_supabase(time_slots_data):
             'Prefer': 'return=minimal'
         }
 
-        # 删除过期数据
+        # 【关键修复】删除所有旧数据（不仅仅是当天之前的）
+        # 这样可以防止数据重复累积
+        print("正在清理旧数据...")
         for venue in VENUES:
-            delete_url = f'{SUPABASE_URL}/rest/v1/time_slots?date=lte.{today}&venue_id=eq.{venue["venue_id"]}'
+            delete_url = f'{SUPABASE_URL}/rest/v1/time_slots?venue_id=eq.{venue["venue_id"]}'
             delete_response = requests.delete(delete_url, headers=headers)
-            if delete_response.status_code not in [200, 204]:
-                print(f"   删除旧数据失败: {delete_response.status_code} - {delete_response.text}")
+            if delete_response.status_code in [200, 204]:
+                print(f"   ✅ 已清理 {venue['name']} 的旧数据")
+            else:
+                print(f"   ⚠️  清理旧数据: {delete_response.status_code} - {delete_response.text}")
 
         # 批量插入新数据 (每次最多1000条)
         if time_slots_data:
+            print(f"正在写入 {len(time_slots_data)} 条新数据...")
             # Supabase POST /rest/v1/time_slots
             insert_url = f'{SUPABASE_URL}/rest/v1/time_slots'
 
