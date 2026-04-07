@@ -713,10 +713,26 @@ async function fetchVenueSlots() {
 // 获取某一天某时段的场地实际状态
 function getVenueSlotStatus(date, hour) {
   const timeStr = `${String(hour).padStart(2, '0')}:00`
-  const slot = venueSlots.value.find(
+  // 筛选匹配的记录
+  const matchingSlots = venueSlots.value.filter(
     s => s.date === date && s.time === timeStr && s.venue_id === currentVenueId.value
   )
-  return slot ? slot.status : null
+  
+  if (matchingSlots.length === 0) {
+    return null
+  }
+  
+  // 如果有多个匹配记录，按updated_at降序排序，取最新的一条
+  if (matchingSlots.length > 1) {
+    console.warn(`发现 ${matchingSlots.length} 条重复记录: ${date} ${timeStr}`)
+    matchingSlots.sort((a, b) => {
+      const dateA = a.updated_at ? new Date(a.updated_at) : new Date(0)
+      const dateB = b.updated_at ? new Date(b.updated_at) : new Date(0)
+      return dateB - dateA
+    })
+  }
+  
+  return matchingSlots[0].status
 }
 
 // 订阅实时更新 - 返回Promise
