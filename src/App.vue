@@ -32,9 +32,10 @@
             <span :class="['date-status', hasDateBooking(date.fullDate) ? 'has-booking' : 'no-booking']">
               {{ hasDateBooking(date.fullDate) ? '有' : '无' }}
             </span>
-            <!-- 天气显示 - 文字描述 -->
+            <!-- 天气显示 - 和风天气 -->
             <span v-if="getWeatherForDate(date.fullDate)" class="weather-info">
-              <span class="weather-desc" :data-weather="getWeatherForDate(date.fullDate).desc">
+              <i :class="['qi-' + getWeatherForDate(date.fullDate).iconCode, 'weather-icon']"></i>
+              <span class="weather-desc">
                 {{ getWeatherForDate(date.fullDate).desc }}
               </span>
               <span class="weather-temp">
@@ -42,6 +43,25 @@
               </span>
             </span>
           </button>
+        </div>
+      </div>
+
+      <!-- 逐小时天气 -->
+      <div v-if="hourlyWeatherData.length > 0" class="hourly-weather-section">
+        <h3 class="hourly-weather-title">未来48小时天气</h3>
+        <div class="hourly-weather-scroll">
+          <div
+            v-for="(hour, index) in hourlyWeatherData"
+            :key="index"
+            class="hourly-weather-card"
+          >
+            <div class="hourly-time">{{ formatHourTime(hour.time) }}</div>
+            <i :class="['qi-' + hour.iconCode, 'hourly-icon']"></i>
+            <div class="hourly-temp">{{ hour.temp }}°</div>
+            <div v-if="hour.pop > 15" class="hourly-pop">
+              💧{{ hour.pop }}%
+            </div>
+          </div>
         </div>
       </div>
 
@@ -160,7 +180,13 @@ const currentVenueId = computed(() => {
 
 // 天气数据
 const weatherData = ref({})
+const hourlyWeatherData = ref([])
 const weatherLoading = ref(false)
+
+// 和风天气配置
+const QWEATHER_API_KEY = '88a8f299cef84b979fd0f9ff434b57c3'
+const QWEATHER_API_HOST = 'nt63yxcqx8.re.qweatherapi.com'
+const QWEATHER_LOCATION = '101021200' // 上海闵行区
 
 // 备注相关
 const showRemarkModal = ref(false)
@@ -180,82 +206,68 @@ const confirmHour = ref(null)
 
 
 
-// Open-Meteo 天气代码到文字描述的映射
-const weatherCodeMap = {
-  0: '晴天',
-  1: '晴间多云',
-  2: '多云',
-  3: '阴',
-  45: '雾',
-  48: '雾凇',
-  51: '小毛毛雨',
-  53: '中毛毛雨',
-  55: '大毛毛雨',
-  56: '冻毛毛雨',
-  57: '强冻毛毛雨',
-  61: '小雨',
-  63: '中雨',
-  65: '大雨',
-  66: '小冻雨',
-  67: '大冻雨',
-  71: '小雪',
-  73: '中雪',
-  75: '大雪',
-  77: '雪粒',
-  80: '小阵雨',
-  81: '中阵雨',
-  82: '大阵雨',
-  85: '小阵雪',
-  86: '大阵雪',
-  95: '雷暴',
-  96: '雷暴+小冰雹',
-  99: '雷暴+大冰雹'
-}
-
-// 获取默认城市天气数据 - 使用Open-Meteo API（快速且无需API密钥）
+// 获取默认城市天气数据 - 使用和风天气API
 async function fetchWeatherData() {
   // 先检查本地缓存
   const cachedData = localStorage.getItem('weatherCache')
+  const cachedHourlyData = localStorage.getItem('hourlyWeatherCache')
   const cacheTime = localStorage.getItem('weatherCacheTime')
   const now = Date.now()
 
   // 如果缓存存在且未超过3小时，直接使用缓存
-  if (cachedData && cacheTime && (now - parseInt(cacheTime)) < 3 * 60 * 60 * 1000) {
+  if (cachedData && cachedHourlyData && cacheTime && (now - parseInt(cacheTime)) < 3 * 60 * 60 * 1000) {
     weatherData.value = JSON.parse(cachedData)
+    hourlyWeatherData.value = JSON.parse(cachedHourlyData)
     console.log('Using cached weather data')
     return
   }
 
   weatherLoading.value = true
   try {
-    // 使用Open-Meteo API - 上海交通大学闵行校区坐标 (lat: 31.025393, lon: 121.436348)
-    // 请求14天的天气数据
-    const response = await fetch(
-      'https://api.open-meteo.com/v1/forecast?latitude=31.025393&longitude=121.436348&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=Asia/Shanghai&forecast_days=14'
-    )
+    // 并行请求7日预报和逐小时预报
+    const [dailyResponse, hourlyResponse] = await Promise.all([
+      fetch(`https://${QWEATHER_API_HOST}/v7/weather/7d?location=${QWEATHER_LOCATION}&key=${QWEATHER_API_KEY}`),
+      fetch(`https://${QWEATHER_API_HOST}/v7/weather/24h?location=${QWEATHER_LOCATION}&key=${QWEATHER_API_KEY}`)
+    ])
 
-    if (!response.ok) throw new Error('Weather API failed')
+    if (!dailyResponse.ok || !hourlyResponse.ok) throw new Error('Weather API failed')
 
-    const data = await response.json()
+    const dailyData = await dailyResponse.json()
+    const hourlyData = await hourlyResponse.json()
     const weatherMap = {}
 
-    // 处理14天的天气数据
-    if (data.daily && data.daily.time) {
-      data.daily.time.forEach((dateStr, index) => {
-        const weatherCode = data.daily.weather_code[index]
-        weatherMap[dateStr] = {
-          minTemp: Math.round(data.daily.temperature_2m_min[index]),
-          maxTemp: Math.round(data.daily.temperature_2m_max[index]),
-          code: weatherCode,
-          desc: weatherCodeMap[weatherCode] || '未知'
+    // 处理7日预报数据
+    if (dailyData.daily) {
+      dailyData.daily.forEach((day) => {
+        weatherMap[day.fxDate] = {
+          minTemp: parseInt(day.tempMin),
+          maxTemp: parseInt(day.tempMax),
+          iconCode: day.iconDay,
+          desc: day.textDay
         }
       })
+    }
+
+    // 处理逐小时预报数据（最近48小时）
+    if (hourlyData.hourly) {
+      const now = new Date()
+      hourlyWeatherData.value = hourlyData.hourly
+        .filter(hour => new Date(hour.fxTime) >= now)
+        .slice(0, 48)
+        .map(hour => ({
+          time: hour.fxTime,
+          temp: parseInt(hour.temp),
+          iconCode: hour.icon,
+          desc: hour.text,
+          pop: hour.pop ? parseInt(hour.pop) : 0
+        }))
     }
 
     weatherData.value = weatherMap
 
     // 保存到本地缓存
     localStorage.setItem('weatherCache', JSON.stringify(weatherMap))
+    localStorage.setItem('hourlyWeatherCache', JSON.stringify(hourlyWeatherData.value))
     localStorage.setItem('weatherCacheTime', now.toString())
 
     console.log('Weather data loaded from API:', weatherMap)
@@ -295,6 +307,10 @@ const dateList = computed(() => {
 
   return dates
 })
+
+function formatHourTime(timeStr) {
+  return timeStr.substr(11, 5)
+}
 
 // 初始化 selectedDate 为今天
 onMounted(() => {
@@ -998,97 +1014,104 @@ button:active {
   color: #fff;
 }
 
-/* 天气显示样式 - 文字描述 */
+/* 天气显示样式 - 和风天气 */
 .weather-info {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
   margin-top: 6px;
   padding-top: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+.weather-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
 .weather-desc {
   font-size: 10px;
   font-weight: 500;
-  padding: 2px 4px;
-  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.9);
   white-space: nowrap;
-}
-
-/* 好天气 - 晴天 */
-.weather-desc[data-weather="晴天"],
-.weather-desc[data-weather="晴间多云"] {
-  background: rgba(251, 191, 36, 0.2);
-  color: #fbbf24;
-}
-
-/* 一般天气 - 多云 */
-.weather-desc[data-weather="多云"],
-.weather-desc[data-weather="阴"] {
-  background: rgba(148, 163, 184, 0.2);
-  color: #94a3b8;
-}
-
-/* 坏天气 - 雨天类 */
-.weather-desc[data-weather="小毛毛雨"],
-.weather-desc[data-weather="中毛毛雨"],
-.weather-desc[data-weather="大毛毛雨"],
-.weather-desc[data-weather="小雨"],
-.weather-desc[data-weather="中雨"],
-.weather-desc[data-weather="大雨"],
-.weather-desc[data-weather="小阵雨"],
-.weather-desc[data-weather="中阵雨"],
-.weather-desc[data-weather="大阵雨"] {
-  background: rgba(59, 130, 246, 0.2);
-  color: #60a5fa;
-}
-
-/* 恶劣天气 - 雷暴/冰雹 */
-.weather-desc[data-weather="雷暴"],
-.weather-desc[data-weather="雷暴+小冰雹"],
-.weather-desc[data-weather="雷暴+大冰雹"] {
-  background: rgba(245, 158, 11, 0.2);
-  color: #fbbf24;
-}
-
-/* 雪天 */
-.weather-desc[data-weather="小雪"],
-.weather-desc[data-weather="中雪"],
-.weather-desc[data-weather="大雪"],
-.weather-desc[data-weather="小阵雪"],
-.weather-desc[data-weather="大阵雪"],
-.weather-desc[data-weather="雪粒"] {
-  background: rgba(165, 243, 252, 0.2);
-  color: #a5f3fc;
-}
-
-/* 雾天 */
-.weather-desc[data-weather="雾"],
-.weather-desc[data-weather="雾凇"] {
-  background: rgba(203, 213, 225, 0.2);
-  color: #cbd5e1;
-}
-
-/* 冻雨 */
-.weather-desc[data-weather="冻毛毛雨"],
-.weather-desc[data-weather="强冻毛毛雨"],
-.weather-desc[data-weather="小冻雨"],
-.weather-desc[data-weather="大冻雨"] {
-  background: rgba(34, 211, 238, 0.2);
-  color: #22d3ee;
-}
-
-/* 未知天气 */
-.weather-desc[data-weather="未知"] {
-  background: rgba(107, 114, 128, 0.2);
-  color: #9ca3af;
 }
 
 .weather-temp {
   font-size: 10px;
   color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+/* 逐小时天气样式 */
+.hourly-weather-section {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 12px;
+}
+
+.hourly-weather-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.hourly-weather-scroll {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+
+.hourly-weather-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.hourly-weather-scroll::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.hourly-weather-scroll::-webkit-scrollbar-thumb {
+  background: rgba(0, 212, 255, 0.5);
+  border-radius: 3px;
+}
+
+.hourly-weather-card {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  min-width: 60px;
+}
+
+.hourly-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.hourly-icon {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.hourly-temp {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.hourly-pop {
+  font-size: 10px;
+  color: #60a5fa;
   font-weight: 500;
 }
 
