@@ -10,7 +10,6 @@
     <div v-else class="main-content-wrapper">
     <header class="header">
       <h1>场地预约情况</h1>
-      <p class="current-time">当前时间：{{ currentTime }}</p>
     </header>
 
     <main class="main-content">
@@ -151,7 +150,6 @@ const timeSlots = [14, 15, 16, 17, 18, 19, 20, 21]
 const currentVenue = ref('cage')
 const selectedDate = ref('')
 const bookings = ref([])
-const currentTime = ref('')
 
 // 页面加载状态
 const isLoading = ref(true)
@@ -191,7 +189,7 @@ const showConfirmModal = ref(false)
 const confirmMessage = ref('')
 const confirmHour = ref(null)
 
-let timeInterval = null
+
 
 // Open-Meteo 天气代码到文字描述的映射
 const weatherCodeMap = {
@@ -320,9 +318,6 @@ onMounted(() => {
   const day = today.getDate()
   selectedDate.value = `${today.getFullYear()}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 
-  updateCurrentTime()
-  timeInterval = setInterval(updateCurrentTime, 1000)
-
   // 先显示页面，天气数据在后台异步加载
   // 这样不会阻塞用户看到预约信息
   Promise.all([
@@ -338,21 +333,8 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (timeInterval) {
-    clearInterval(timeInterval)
-  }
+  // 清理代码（如果需要）
 })
-
-function updateCurrentTime() {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const date = String(now.getDate()).padStart(2, '0')
-  const hours = String(now.getHours()).padStart(2, '0')
-  const minutes = String(now.getMinutes()).padStart(2, '0')
-  const seconds = String(now.getSeconds()).padStart(2, '0')
-  currentTime.value = `${year}-${month}-${date} ${hours}:${minutes}:${seconds}`
-}
 
 // 获取某个场地和日期的预约记录
 function getBookingsForVenueAndDate(venue, date) {
@@ -864,17 +846,10 @@ button:active {
 
 .header h1 {
   font-size: 28px;
-  margin-bottom: 8px;
   background: linear-gradient(90deg, #00d4ff, #7c3aed);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-}
-
-.current-time {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  font-family: 'Monaco', 'Courier New', monospace;
 }
 
 .main-content {
