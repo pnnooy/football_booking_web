@@ -46,25 +46,6 @@
         </div>
       </div>
 
-      <!-- 逐小时天气 -->
-      <div v-if="hourlyWeatherData.length > 0" class="hourly-weather-section">
-        <h3 class="hourly-weather-title">未来48小时天气</h3>
-        <div class="hourly-weather-scroll">
-          <div
-            v-for="(hour, index) in hourlyWeatherData"
-            :key="index"
-            class="hourly-weather-card"
-          >
-            <div class="hourly-time">{{ formatHourTime(hour.time) }}</div>
-            <i :class="['qi-' + hour.iconCode, 'hourly-icon']"></i>
-            <div class="hourly-temp">{{ hour.temp }}°</div>
-            <div v-if="hour.pop > 15" class="hourly-pop">
-              💧{{ hour.pop }}%
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- 时间网格 -->
       <div class="time-grid">
         <div
@@ -85,7 +66,17 @@
             @touchend="cancelPress"
             @touchcancel="cancelPress"
           >
-            <span class="time-label">{{ hour }}:00 - {{ hour + 1 }}:00</span>
+            <div class="time-slot-left">
+              <span class="time-label">{{ hour }}:00 - {{ hour + 1 }}:00</span>
+              <!-- 天气显示 -->
+              <div v-if="getHourlyWeather(selectedDate, hour)" class="time-slot-weather">
+                <i :class="['qi-' + getHourlyWeather(selectedDate, hour).iconCode, 'slot-weather-icon']"></i>
+                <span class="slot-weather-temp">{{ getHourlyWeather(selectedDate, hour).temp }}°</span>
+                <span v-if="getHourlyWeather(selectedDate, hour).pop > 15" class="slot-weather-pop">
+                  💧{{ getHourlyWeather(selectedDate, hour).pop }}%
+                </span>
+              </div>
+            </div>
             <span class="time-status">{{ getSlotStatus(hour) }}</span>
           </div>
         </div>
@@ -308,8 +299,22 @@ const dateList = computed(() => {
   return dates
 })
 
-function formatHourTime(timeStr) {
-  return timeStr.substr(11, 5)
+// 获取指定日期和小时的逐小时天气
+function getHourlyWeather(dateStr, hour) {
+  if (!hourlyWeatherData.value || hourlyWeatherData.value.length === 0) {
+    return null
+  }
+  
+  const targetDateTime = `${dateStr} ${String(hour).padStart(2, '0')}:00`
+  
+  for (const hourData of hourlyWeatherData.value) {
+    const hourDateTime = hourData.time.replace('T', ' ').substring(0, 16)
+    if (hourDateTime.startsWith(targetDateTime)) {
+      return hourData
+    }
+  }
+  
+  return null
 }
 
 // 初始化 selectedDate 为今天
@@ -1043,75 +1048,34 @@ button:active {
   font-weight: 500;
 }
 
-/* 逐小时天气样式 */
-.hourly-weather-section {
-  margin-bottom: 20px;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-}
-
-.hourly-weather-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 12px;
-  text-align: center;
-}
-
-.hourly-weather-scroll {
-  display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-}
-
-.hourly-weather-scroll::-webkit-scrollbar {
-  height: 6px;
-}
-
-.hourly-weather-scroll::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-}
-
-.hourly-weather-scroll::-webkit-scrollbar-thumb {
-  background: rgba(0, 212, 255, 0.5);
-  border-radius: 3px;
-}
-
-.hourly-weather-card {
-  flex-shrink: 0;
+/* 时段框内天气样式 */
+.time-slot-left {
   display: flex;
   flex-direction: column;
+  gap: 6px;
+}
+
+.time-slot-weather {
+  display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 10px;
-  min-width: 60px;
+  flex-wrap: wrap;
 }
 
-.hourly-time {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
-}
-
-.hourly-icon {
-  font-size: 28px;
+.slot-weather-icon {
+  font-size: 20px;
   line-height: 1;
 }
 
-.hourly-temp {
-  font-size: 14px;
+.slot-weather-temp {
+  font-size: 13px;
   font-weight: 600;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.95);
 }
 
-.hourly-pop {
-  font-size: 10px;
-  color: #60a5fa;
+.slot-weather-pop {
+  font-size: 11px;
+  color: #93c5fd;
   font-weight: 500;
 }
 
