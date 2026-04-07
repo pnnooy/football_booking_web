@@ -13,19 +13,9 @@
     </header>
 
     <main class="main-content">
-      <!-- 场地切换标签 -->
-      <div class="venue-tabs">
-        <button
-          v-for="venue in venues"
-          :key="venue.id"
-          :class="['tab', { active: currentVenue === venue.id }]"
-          @click="currentVenue = venue.id"
-        >
-          {{ venue.name }}
-          <span :class="['venue-status', hasBooking(venue.id) ? 'has-booking' : 'no-booking']">
-            {{ hasBooking(venue.id) ? '有预约' : '无预约' }}
-          </span>
-        </button>
+      <!-- 场地名称显示 -->
+      <div class="venue-title">
+        <h2>{{ venues[0].name }}</h2>
       </div>
 
       <!-- 日期导航 -->
@@ -139,8 +129,7 @@ import { supabase } from './supabase'
 
 // 场地列表
 const venues = [
-  { id: 'cage', name: '笼式足球场', venue_id: '2b528fa8-3ce8-4a7a-8f8b-83cc537901ed' },
-  { id: 'pool', name: '致远游泳馆球场', venue_id: 'a41b3261-6fce-4073-b799-1e91ed19a7f3' }
+  { id: 'cage', name: '笼式足球场', venue_id: '2b528fa8-3ce8-4a7a-8f8b-83cc537901ed' }
 ]
 
 // 时间段（14:00 - 22:00，每小时一个时段）
@@ -378,10 +367,6 @@ function getSlotClass(hour) {
   if (isBooked(hour)) {
     return 'booked'
   }
-  // 致远游泳馆球场：所有未过期时段都显示为不可选（灰色）
-  if (currentVenue.value === 'pool') {
-    return 'unavailable'
-  }
   // 用户未预约时，根据场地实际状态显示颜色
   const venueStatus = getVenueSlotStatus(selectedDate.value, hour)
   // 已满、不可选显示灰色
@@ -400,10 +385,6 @@ function getSlotStatus(hour) {
   // 如果用户已预约，显示用户预约状态
   if (isBooked(hour)) {
     return '已预约'
-  }
-  // 致远游泳馆球场：所有未过期时段都显示为不可选
-  if (currentVenue.value === 'pool') {
-    return '不可选'
   }
   // 用户未预约时，显示场地实际状态
   const venueStatus = getVenueSlotStatus(selectedDate.value, hour)
@@ -872,6 +853,19 @@ button:active {
   padding: 20px;
   max-width: 600px;
   margin: 0 auto;
+}
+
+.venue-title {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.venue-title h2 {
+  font-size: 22px;
+  background: linear-gradient(90deg, #00d4ff, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .venue-tabs {
