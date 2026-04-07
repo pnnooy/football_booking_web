@@ -25,12 +25,6 @@ VENUES = [
         'venue_id': '2b528fa8-3ce8-4a7a-8f8b-83cc537901ed',
         'field_type': 'ad666603-a47e-488d-b913-d5304a880ced',
         'sport_type': '足球'
-    },
-    {
-        'name': '致远游泳馆东侧足球场',
-        'venue_id': 'a41b3261-6fce-4073-b799-1e91ed19a7f3',
-        'field_type': 'ad666603-a47e-488d-b913-d5304a880ced',  # 需要验证
-        'sport_type': '足球'
     }
 ]
 
