@@ -178,7 +178,6 @@
             <!-- 问题反馈 -->
             <div class="settings-item" @click="showFeedbackModal = true">
               <div class="settings-item-left">
-                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">问题反馈</div>
                   <div class="settings-item-desc">报告Bug或遇到的问题</div>
@@ -190,7 +189,6 @@
             <!-- 功能建议 -->
             <div class="settings-item" @click="showSuggestionModal = true">
               <div class="settings-item-left">
-                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">功能建议</div>
                   <div class="settings-item-desc">提出新功能或改进建议</div>
@@ -202,7 +200,6 @@
             <!-- 使用帮助 -->
             <div class="settings-item" @click="showHelpModal = true">
               <div class="settings-item-left">
-                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">使用帮助</div>
                   <div class="settings-item-desc">查看使用说明和常见问题</div>
