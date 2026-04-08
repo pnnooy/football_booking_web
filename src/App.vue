@@ -722,6 +722,16 @@ async function fetchVenueSlots() {
 
 // 获取某一天某时段的场地实际状态
 function getVenueSlotStatus(date, hour) {
+  // 检查是否是最后一天
+  const lastDate = dateList.value[dateList.value.length - 1]?.fullDate
+  const now = new Date()
+  const currentHour = now.getHours()
+  
+  // 如果是最后一天，且当前时间在下午2点前，返回"不可选"
+  if (date === lastDate && currentHour < 14) {
+    return '不可选'
+  }
+  
   const timeStr = `${String(hour).padStart(2, '0')}:00`
   // 筛选匹配的记录
   const matchingSlots = venueSlots.value.filter(
