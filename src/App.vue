@@ -2185,6 +2185,7 @@ button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn)
   letter-spacing: 0.6px;
   margin-bottom: 10px;
   padding-left: 4px;
+  line-height: 1.4;
 }
 
 .section-content {
@@ -2253,7 +2254,7 @@ button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn)
 .settings-text {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
   flex: 1;
 }
 
@@ -2261,7 +2262,7 @@ button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn)
   font-size: 16px;
   font-weight: 500;
   color: #333333;
-  line-height: 1.3;
+  line-height: 1.4;
 }
 
 .settings-item-desc {
