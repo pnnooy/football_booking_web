@@ -159,48 +159,15 @@
             <!-- 背景设置 -->
             <div class="settings-group">
               <div class="group-label">背景设置</div>
-              
-              <!-- 图片背景 -->
-              <div class="settings-item">
+              <div class="settings-item" @click="showBgSettings = true">
                 <div class="settings-item-left">
-                  <div class="settings-icon">🖼️</div>
+                  <div class="settings-icon"></div>
                   <div class="settings-text">
-                    <div class="settings-item-title">图片背景</div>
-                    <div class="settings-item-desc">7张精选背景图片</div>
+                    <div class="settings-item-title">更换背景</div>
+                    <div class="settings-item-desc">选择图片背景或纯色背景</div>
                   </div>
                 </div>
-              </div>
-              <div class="bg-preview-grid">
-                <div 
-                  v-for="(img, index) in bgImages" 
-                  :key="index"
-                  class="bg-preview-item"
-                  :class="{ active: currentBgType === 'image' && currentBgImage === img }"
-                  :style="{ backgroundImage: `url(/bg/${img})` }"
-                  @click="selectImageBg(img)"
-                ></div>
-              </div>
-
-              <!-- 纯色背景 -->
-              <div class="settings-item" style="margin-top: 16px;">
-                <div class="settings-item-left">
-                  <div class="settings-icon">🎨</div>
-                  <div class="settings-text">
-                    <div class="settings-item-title">纯色背景</div>
-                    <div class="settings-item-desc">多种纯色可选</div>
-                  </div>
-                </div>
-              </div>
-              <div class="color-preview-grid">
-                <div 
-                  v-for="(color, index) in solidBgColors.slice(0, 8)" 
-                  :key="index"
-                  class="color-preview-item"
-                  :class="{ active: currentBgType === 'solid' && currentSolidBg === color.color }"
-                  :style="{ background: color.color }"
-                  :title="color.name"
-                  @click="selectSolidBg(color.color)"
-                ></div>
+                <span class="settings-arrow">›</span>
               </div>
             </div>
           </div>
@@ -213,7 +180,7 @@
             <!-- 问题反馈 -->
             <div class="settings-item" @click="showFeedbackModal = true">
               <div class="settings-item-left">
-                <div class="settings-icon">🐛</div>
+                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">问题反馈</div>
                   <div class="settings-item-desc">报告Bug或遇到的问题</div>
@@ -225,7 +192,7 @@
             <!-- 功能建议 -->
             <div class="settings-item" @click="showSuggestionModal = true">
               <div class="settings-item-left">
-                <div class="settings-icon">💡</div>
+                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">功能建议</div>
                   <div class="settings-item-desc">提出新功能或改进建议</div>
@@ -237,7 +204,7 @@
             <!-- 使用帮助 -->
             <div class="settings-item" @click="showHelpModal = true">
               <div class="settings-item-left">
-                <div class="settings-icon">📖</div>
+                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">使用帮助</div>
                   <div class="settings-item-desc">查看使用说明和常见问题</div>
@@ -255,7 +222,7 @@
             <!-- 清除天气缓存 -->
             <div class="settings-item" @click="clearWeatherCache">
               <div class="settings-item-left">
-                <div class="settings-icon">🌤️</div>
+                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">清除天气缓存</div>
                   <div class="settings-item-desc">清除已缓存的天气数据</div>
@@ -267,7 +234,7 @@
             <!-- 清除所有本地数据 -->
             <div class="settings-item" @click="clearAllCache">
               <div class="settings-item-left">
-                <div class="settings-icon">🗑️</div>
+                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">清除所有本地数据</div>
                   <div class="settings-item-desc">清除所有缓存和本地存储</div>
@@ -333,7 +300,7 @@
               <div class="group-label">隐私设置</div>
               <div class="settings-item" @click="clearBrowsingHistory">
                 <div class="settings-item-left">
-                  <div class="settings-icon">🔒</div>
+                  <div class="settings-icon"></div>
                   <div class="settings-text">
                     <div class="settings-item-title">清除浏览记录</div>
                     <div class="settings-item-desc">清除本地浏览历史</div>
@@ -366,6 +333,45 @@
               </div>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 背景设置弹窗 -->
+    <div v-if="showBgSettings" class="modal-overlay" @click="showBgSettings = false">
+      <div class="modal-content modal-content-large" @click.stop>
+        <div class="modal-header">
+          <h3>更换背景</h3>
+          <button class="modal-close" @click="showBgSettings = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="section-label">图片背景</div>
+          <div class="bg-preview-grid">
+            <div 
+              v-for="(img, index) in bgImages" 
+              :key="index"
+              class="bg-preview-item"
+              :class="{ active: currentBgType === 'image' && currentBgImage === img }"
+              :style="{ backgroundImage: `url(/bg/${img})` }"
+              @click="selectImageBg(img)"
+            ></div>
+          </div>
+          
+          <div class="section-label" style="margin-top: 20px;">纯色背景</div>
+          <div class="color-preview-grid">
+            <div 
+              v-for="(color, index) in solidBgColors" 
+              :key="index"
+              class="color-preview-item"
+              :class="{ active: currentBgType === 'solid' && currentSolidBg === color.color }"
+              :style="{ background: color.color }"
+              :title="color.name"
+              @click="selectSolidBg(color.color)"
+            ></div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-primary" @click="showBgSettings = false">确定</button>
         </div>
       </div>
     </div>
@@ -413,25 +419,25 @@
         </div>
         <div class="modal-body help-content">
           <div class="help-section">
-            <h4>📋 基本使用</h4>
+            <h4>基本使用</h4>
             <p>1. <strong>查看预约</strong>：选择日期后，下方会显示该日期的所有时间段预约情况</p>
             <p>2. <strong>预约场地</strong>：点击"可预约"的时间段，输入管理员密码即可完成预约</p>
             <p>3. <strong>取消预约</strong>：点击"已预约"的时间段，输入密码即可取消</p>
           </div>
           <div class="help-section">
-            <h4>🌤️ 天气功能</h4>
+            <h4>天气功能</h4>
             <p>1. 每个日期上方会显示当天的天气概况</p>
             <p>2. 每个时间段会显示该时段的天气和降水概率</p>
             <p>3. 天气数据每小时自动更新</p>
           </div>
           <div class="help-section">
-            <h4>⚙️ 设置功能</h4>
+            <h4>设置功能</h4>
             <p>1. <strong>更换背景</strong>：支持纯色背景和图片背景切换</p>
             <p>2. <strong>分享功能</strong>：可将预约情况导出为图片分享</p>
             <p>3. <strong>清除缓存</strong>：清除天气缓存或所有本地数据</p>
           </div>
           <div class="help-section">
-            <h4>❓ 常见问题</h4>
+            <h4>常见问题</h4>
             <p><strong>Q: 为什么显示"暂无数据"？</strong></p>
             <p>A: 数据每天下午2点左右更新，请稍后再试。</p>
             <p><strong>Q: 天气数据准确吗？</strong></p>
