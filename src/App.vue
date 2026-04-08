@@ -1,5 +1,5 @@
 <template>
-  <div class="app" :style="{ backgroundImage: `url(/bg/${currentBgImage})` }">
+  <div class="app" :style="appStyle">
     <!-- 加载界面 -->
     <div v-if="isLoading" class="loading-screen">
       <div class="loading-spinner"></div>
@@ -8,6 +8,8 @@
 
     <!-- 主内容 -->
     <div v-else class="main-content-wrapper">
+    <button class="settings-btn" @click="showSettings = true">⚙</button>
+    
     <header class="header">
       <h1>场地预约情况</h1>
     </header>
@@ -131,6 +133,107 @@
         </div>
       </div>
     </div>
+
+    <!-- 设置弹窗 -->
+    <div v-if="showSettings" class="settings-modal" @click="showSettings = false">
+      <div class="settings-content" @click.stop>
+        <h2 class="settings-title">设置</h2>
+        
+        <div class="settings-option" @click="showBgSettings = true">
+          <div class="settings-option-title">更换背景</div>
+          <div class="settings-option-desc">选择纯色背景或图片背景</div>
+        </div>
+        
+        <div class="settings-option" @click="alert('反馈与帮助功能开发中...')">
+          <div class="settings-option-title">反馈与帮助</div>
+          <div class="settings-option-desc">提交反馈或获取帮助</div>
+        </div>
+        
+        <div class="settings-option" @click="showProjectInfo = true">
+          <div class="settings-option-title">项目信息</div>
+          <div class="settings-option-desc">查看项目详情</div>
+        </div>
+        
+        <div class="settings-option" @click="clearCache">
+          <div class="settings-option-title">清除缓存</div>
+          <div class="settings-option-desc">清除本地缓存数据</div>
+        </div>
+        
+        <div class="settings-option" @click="refreshPage">
+          <div class="settings-option-title">刷新页面</div>
+          <div class="settings-option-desc">重新加载页面数据</div>
+        </div>
+        
+        <button class="settings-close" @click="showSettings = false">关闭</button>
+      </div>
+    </div>
+
+    <!-- 背景设置弹窗 -->
+    <div v-if="showBgSettings" class="settings-modal" @click="showBgSettings = false">
+      <div class="settings-content" @click.stop>
+        <h2 class="settings-title">更换背景</h2>
+        
+        <div class="section-label">纯色背景</div>
+        <div class="bg-options">
+          <div 
+            v-for="(color, index) in solidBgColors" 
+            :key="index"
+            class="bg-option"
+            :class="{ active: currentBgType === 'solid' && currentSolidBg === color.color }"
+            :style="{ background: color.color }"
+            :title="color.name"
+            @click="selectSolidBg(color.color)"
+          ></div>
+        </div>
+        
+        <div class="section-label">图片背景</div>
+        <div class="bg-options">
+          <div 
+            v-for="(img, index) in bgImages" 
+            :key="index"
+            class="bg-option bg-option-image"
+            :class="{ active: currentBgType === 'image' && currentBgImage === img }"
+            :style="{ backgroundImage: `url(/bg/${img})` }"
+            @click="selectImageBg(img)"
+          ></div>
+        </div>
+        
+        <button class="settings-close" @click="showBgSettings = false">返回</button>
+      </div>
+    </div>
+
+    <!-- 项目信息弹窗 -->
+    <div v-if="showProjectInfo" class="settings-modal" @click="showProjectInfo = false">
+      <div class="settings-content" @click.stop>
+        <h2 class="settings-title">项目信息</h2>
+        
+        <div class="project-info-item">
+          <div class="project-info-label">项目名称</div>
+          <div class="project-info-value">足球场地预约看板</div>
+        </div>
+        
+        <div class="project-info-item">
+          <div class="project-info-label">版本</div>
+          <div class="project-info-value">2.0.0</div>
+        </div>
+        
+        <div class="project-info-item">
+          <div class="project-info-label">作者</div>
+          <div class="project-info-value">PlayToday Team</div>
+        </div>
+        
+        <div class="project-info-item">
+          <div class="project-info-label">仓库</div>
+          <div class="project-info-value project-info-link">
+            <a href="https://github.com/playtoday/football-booking" target="_blank" rel="noopener noreferrer">
+              GitHub Repository
+            </a>
+          </div>
+        </div>
+        
+        <button class="settings-close" @click="showProjectInfo = false">关闭</button>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -156,9 +259,104 @@ const isLoading = ref(true)
 
 // 背景图片
 const bgImages = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg', 'bg7.jpg']
-// 主页面可用的背景图片（排除bg1.jpg）
-const mainPageBgImages = ['bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg', 'bg7.jpg']
 const currentBgImage = ref('')
+
+// 纯色背景选项
+const solidBgColors = [
+  { color: '#0a0a0a', name: '极深黑' },
+  { color: '#0d0d0d', name: '深邃黑' },
+  { color: '#111111', name: '墨黑' },
+  { color: '#141414', name: '暗黑' },
+  { color: '#171717', name: '深黑' },
+  { color: '#1a1a1a', name: '纯黑' },
+  { color: '#1d1d1d', name: '炭黑' },
+  { color: '#202020', name: '灰黑' },
+  { color: '#1a1d23', name: '深空灰' },
+  { color: '#1d1d1f', name: '苹果灰' },
+  { color: '#1e1e1e', name: '代码灰' },
+  { color: '#212121', name: '哑光灰' },
+  { color: '#242424', name: '磨砂灰' },
+  { color: '#252525', name: '石墨灰' },
+  { color: '#282828', name: '石板灰' },
+  { color: '#2d2d2d', name: '金属灰' },
+  { color: '#1a1a2e', name: '深靛蓝' },
+  { color: '#16213e', name: '深海蓝' },
+  { color: '#1a2332', name: '午夜蓝' },
+  { color: '#1d1d2e', name: '暗紫蓝' },
+  { color: '#1e2030', name: '深紫灰' },
+  { color: '#152238', name: '藏青蓝' },
+  { color: '#1c1c28', name: '深紫' },
+  { color: '#232d3f', name: '靛蓝灰' },
+  { color: '#2d1b69', name: '深紫' },
+  { color: '#1e3a5f', name: '皇家蓝' },
+  { color: '#2a1f3d', name: '暗紫红' },
+  { color: '#1f3040', name: '深蓝' },
+  { color: '#1d352c', name: '深绿' },
+  { color: '#3d291d', name: '深棕' },
+  { color: '#4a1942', name: '酒红' },
+  { color: '#1a4a5e', name: '孔雀蓝' },
+  { color: '#3d2a4f', name: '紫罗兰' },
+  { color: '#1f4d40', name: '森林绿' },
+  { color: '#4a3520', name: '琥珀棕' },
+  { color: '#2d4a5e', name: '钢蓝' },
+  { color: '#5e2d4a', name: '洋红' },
+  { color: '#4a5e2d', name: '橄榄绿' }
+]
+
+// 设置相关
+const showSettings = ref(false)
+const showBgSettings = ref(false)
+const showProjectInfo = ref(false)
+
+// 背景类型和当前选择
+const currentBgType = ref('solid') // 'solid' 或 'image'
+const currentSolidBg = ref('#232d3f') // 默认靛蓝灰
+
+// 计算应用样式
+const appStyle = computed(() => {
+  if (currentBgType.value === 'image') {
+    return {
+      backgroundImage: `url(/bg/${currentBgImage.value})`,
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat'
+    }
+  } else {
+    return {
+      background: currentSolidBg.value
+    }
+  }
+})
+
+// 选择纯色背景
+function selectSolidBg(color) {
+  currentSolidBg.value = color
+  currentBgType.value = 'solid'
+  localStorage.setItem('bgType', 'solid')
+  localStorage.setItem('solidBg', color)
+}
+
+// 选择图片背景
+function selectImageBg(img) {
+  currentBgImage.value = img
+  currentBgType.value = 'image'
+  localStorage.setItem('bgType', 'image')
+  localStorage.setItem('imageBg', img)
+}
+
+// 清除缓存
+function clearCache() {
+  localStorage.removeItem('weatherCache')
+  localStorage.removeItem('hourlyWeatherCache')
+  localStorage.removeItem('weatherCacheTime')
+  alert('缓存已清除！')
+  fetchWeatherData()
+}
+
+// 刷新页面
+function refreshPage() {
+  location.reload()
+}
 
 // 场地实际状态数据（从time_slots表获取）
 const venueSlots = ref([])
@@ -327,9 +525,22 @@ function getHourlyWeather(dateStr, hour) {
 
 // 初始化 selectedDate 为今天
 onMounted(() => {
-  // 随机选择主页面背景图片（排除bg1.jpg）
-  const randomIndex = Math.floor(Math.random() * mainPageBgImages.length)
-  currentBgImage.value = mainPageBgImages[randomIndex]
+  // 从localStorage读取背景设置
+  const savedBgType = localStorage.getItem('bgType')
+  const savedSolidBg = localStorage.getItem('solidBg')
+  const savedImageBg = localStorage.getItem('imageBg')
+  
+  if (savedBgType) {
+    currentBgType.value = savedBgType
+  }
+  if (savedSolidBg) {
+    currentSolidBg.value = savedSolidBg
+  }
+  if (savedImageBg) {
+    currentBgImage.value = savedImageBg
+  } else {
+    currentBgImage.value = bgImages[0]
+  }
 
   const today = new Date()
   const month = today.getMonth() + 1
@@ -829,7 +1040,6 @@ button:active {
 
 .app {
   min-height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
@@ -837,9 +1047,33 @@ button:active {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
-/* 主内容容器 - 半透明背景 */
+/* 设置按钮 */
+.settings-btn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #fff;
+  transition: all 0.3s;
+  z-index: 100;
+}
+
+.settings-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: rotate(45deg);
+}
+
+/* 主内容容器 */
 .main-content-wrapper {
-  background: rgba(0, 0, 0, 0.3);
   min-height: 100vh;
 }
 
@@ -857,7 +1091,7 @@ button:active {
   width: 50px;
   height: 50px;
   border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top-color: #00d4ff;
+  border-top-color: rgba(255, 255, 255, 0.6);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -874,7 +1108,6 @@ button:active {
 }
 
 .header {
-  background: rgba(0, 0, 0, 0.3);
   padding: 20px;
   text-align: center;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
@@ -882,10 +1115,7 @@ button:active {
 
 .header h1 {
   font-size: 28px;
-  background: linear-gradient(90deg, #00d4ff, #7c3aed);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #fff;
 }
 
 .main-content {
@@ -901,10 +1131,7 @@ button:active {
 
 .venue-title h2 {
   font-size: 22px;
-  background: linear-gradient(90deg, #00d4ff, #7c3aed);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: #fff;
 }
 
 .venue-tabs {
@@ -1002,8 +1229,8 @@ button:active {
 }
 
 .date-btn.active {
-  background: rgba(0, 212, 255, 0.2);
-  border-color: #00d4ff;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   outline: none !important;
   box-shadow: none !important;
 }
@@ -1150,39 +1377,39 @@ button:active {
 }
 
 .time-slot.available {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  background: #3b82f6;
 }
 
 .time-slot.available:hover {
-  background: linear-gradient(135deg, #60a5fa, #3b82f6);
+  background: #60a5fa;
 }
 
 .time-slot.unavailable {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
+  background: #6b7280;
 }
 
 .time-slot.unavailable:hover {
-  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  background: #9ca3af;
 }
 
 .time-slot.unbooked {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
+  background: #6b7280;
 }
 
 .time-slot.unbooked:hover {
-  background: linear-gradient(135deg, #9ca3af, #6b7280);
+  background: #9ca3af;
 }
 
 .time-slot.booked {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: #10b981;
 }
 
 .time-slot.booked:hover {
-  background: linear-gradient(135deg, #34d399, #10b981);
+  background: #34d399;
 }
 
 .time-slot.expired {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
+  background: #6b7280;
   cursor: not-allowed;
   opacity: 0.6;
 }
@@ -1340,11 +1567,166 @@ button:active {
 }
 
 .btn-confirm {
-  background: linear-gradient(135deg, #00d4ff, #7c3aed);
+  background: #3b82f6;
   color: #fff;
 }
 
 .btn-confirm:hover {
   opacity: 0.9;
+}
+
+/* 设置弹窗样式 */
+.settings-modal {
+  display: flex;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-content {
+  background: #252525;
+  border-radius: 20px;
+  padding: 30px;
+  width: 90%;
+  max-width: 400px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.settings-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+}
+
+.settings-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.settings-option {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.settings-option:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.settings-option-title {
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.settings-option-desc {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.settings-close {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  margin-top: 20px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.settings-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.section-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 16px 0 10px;
+}
+
+.section-label:first-of-type {
+  margin-top: 0;
+}
+
+.bg-options {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.bg-option {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+}
+
+.bg-option:hover {
+  transform: scale(1.05);
+}
+
+.bg-option.active {
+  border-color: #fff;
+}
+
+.bg-option-image {
+  background-size: cover;
+  background-position: center;
+}
+
+.project-info-item {
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.project-info-item:last-of-type {
+  border-bottom: none;
+}
+
+.project-info-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 4px;
+}
+
+.project-info-value {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.project-info-link a {
+  color: #60a5fa;
+  text-decoration: none;
+}
+
+.project-info-link a:hover {
+  text-decoration: underline;
 }
 </style>
