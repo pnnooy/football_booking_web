@@ -241,7 +241,33 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from './supabase'
-import html2canvas from 'html2canvas'
+
+// 动态加载html2canvas
+let html2canvas = null
+async function loadHtml2Canvas() {
+  if (html2canvas) return html2canvas
+  
+  // 先尝试从node_modules加载
+  try {
+    const module = await import('html2canvas')
+    html2canvas = module.default
+    return html2canvas
+  } catch (e) {
+    console.log('从node_modules加载失败，尝试CDN')
+  }
+  
+  // 从CDN加载
+  return new Promise((resolve, reject) => {
+    const script = document.createElement('script')
+    script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'
+    script.onload = () => {
+      html2canvas = window.html2canvas
+      resolve(html2canvas)
+    }
+    script.onerror = reject
+    document.head.appendChild(script)
+  })
+}
 
 // 场地列表
 const venues = [
@@ -344,6 +370,9 @@ const loadingBgStyle = computed(() => {
 // 分享预约情况
 async function shareSchedule() {
   try {
+    // 动态加载html2canvas
+    const h2c = await loadHtml2Canvas()
+    
     // 先隐藏固定按钮，防止截图时包含
     const settingsBtn = document.querySelector('.settings-btn')
     const shareBtn = document.querySelector('.share-btn')
@@ -361,7 +390,7 @@ async function shareSchedule() {
     }
 
     // 使用html2canvas截图
-    const canvas = await html2canvas(element, {
+    const canvas = await h2c(element, {
       scale: 2,
       useCORS: true,
       backgroundColor: null
