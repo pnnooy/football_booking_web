@@ -2283,8 +2283,8 @@ button:active {
 /* 背景预览网格 */
 .bg-preview-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
   padding: 8px;
 }
 
