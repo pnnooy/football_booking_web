@@ -139,104 +139,307 @@
       </div>
     </div>
 
-    <!-- 设置弹窗 -->
-    <div v-if="showSettings" class="settings-modal" @click="showSettings = false">
-      <div class="settings-content" @click.stop>
-        <h2 class="settings-title">设置</h2>
-        
-        <div class="settings-option" @click="showBgSettings = true">
-          <div class="settings-option-title">更换背景</div>
-          <div class="settings-option-desc">选择纯色背景或图片背景</div>
-        </div>
-        
-        <div class="settings-option" @click="alert('反馈与帮助功能开发中...')">
-          <div class="settings-option-title">反馈与帮助</div>
-          <div class="settings-option-desc">提交反馈或获取帮助</div>
-        </div>
-        
-        <div class="settings-option" @click="showProjectInfo = true">
-          <div class="settings-option-title">项目信息</div>
-          <div class="settings-option-desc">查看项目详情</div>
-        </div>
-        
-        <div class="settings-option" @click="clearCache">
-          <div class="settings-option-title">清除缓存</div>
-          <div class="settings-option-desc">清除本地缓存数据</div>
-        </div>
-        
-        <div class="settings-option" @click="refreshPage">
-          <div class="settings-option-title">刷新页面</div>
-          <div class="settings-option-desc">重新加载页面数据</div>
-        </div>
-        
-        <button class="settings-close" @click="showSettings = false">关闭</button>
+    <!-- 设置页面 - 极简黑风格，占满全屏 -->
+    <div v-if="showSettings" class="settings-fullpage">
+      <!-- 头部 -->
+      <div class="settings-header">
+        <button class="settings-back" @click="showSettings = false">
+          <span class="back-arrow">←</span>
+        </button>
+        <h2 class="settings-header-title">设置</h2>
+        <div class="settings-header-placeholder"></div>
       </div>
-    </div>
 
-    <!-- 背景设置弹窗 -->
-    <div v-if="showBgSettings" class="settings-modal" @click="showBgSettings = false">
-      <div class="settings-content" @click.stop>
-        <h2 class="settings-title">更换背景</h2>
-        
-        <div class="section-label">纯色背景</div>
-        <div class="bg-options">
-          <div 
-            v-for="(color, index) in solidBgColors" 
-            :key="index"
-            class="bg-option"
-            :class="{ active: currentBgType === 'solid' && currentSolidBg === color.color }"
-            :style="{ background: color.color }"
-            :title="color.name"
-            @click="selectSolidBg(color.color)"
-          ></div>
-        </div>
-        
-        <div class="section-label">图片背景</div>
-        <div class="bg-options">
-          <div 
-            v-for="(img, index) in bgImages" 
-            :key="index"
-            class="bg-option bg-option-image"
-            :class="{ active: currentBgType === 'image' && currentBgImage === img }"
-            :style="{ backgroundImage: `url(/bg/${img})` }"
-            @click="selectImageBg(img)"
-          ></div>
-        </div>
-        
-        <button class="settings-close" @click="showBgSettings = false">返回</button>
-      </div>
-    </div>
+      <!-- 设置内容 -->
+      <div class="settings-body">
+        <!-- 第一组：外观设置 -->
+        <div class="settings-section">
+          <div class="section-title">外观设置</div>
+          <div class="section-content">
+            <!-- 背景设置 -->
+            <div class="settings-group">
+              <div class="group-label">背景设置</div>
+              
+              <!-- 图片背景 -->
+              <div class="settings-item">
+                <div class="settings-item-left">
+                  <div class="settings-icon">🖼️</div>
+                  <div class="settings-text">
+                    <div class="settings-item-title">图片背景</div>
+                    <div class="settings-item-desc">7张精选背景图片</div>
+                  </div>
+                </div>
+              </div>
+              <div class="bg-preview-grid">
+                <div 
+                  v-for="(img, index) in bgImages" 
+                  :key="index"
+                  class="bg-preview-item"
+                  :class="{ active: currentBgType === 'image' && currentBgImage === img }"
+                  :style="{ backgroundImage: `url(/bg/${img})` }"
+                  @click="selectImageBg(img)"
+                ></div>
+              </div>
 
-    <!-- 项目信息弹窗 -->
-    <div v-if="showProjectInfo" class="settings-modal" @click="showProjectInfo = false">
-      <div class="settings-content" @click.stop>
-        <h2 class="settings-title">项目信息</h2>
-        
-        <div class="project-info-item">
-          <div class="project-info-label">项目名称</div>
-          <div class="project-info-value">足球场地预约看板</div>
-        </div>
-        
-        <div class="project-info-item">
-          <div class="project-info-label">版本</div>
-          <div class="project-info-value">2.0.0</div>
-        </div>
-        
-        <div class="project-info-item">
-          <div class="project-info-label">作者</div>
-          <div class="project-info-value">PlayToday Team</div>
-        </div>
-        
-        <div class="project-info-item">
-          <div class="project-info-label">仓库</div>
-          <div class="project-info-value project-info-link">
-            <a href="https://github.com/playtoday/football-booking" target="_blank" rel="noopener noreferrer">
-              GitHub Repository
-            </a>
+              <!-- 纯色背景 -->
+              <div class="settings-item" style="margin-top: 16px;">
+                <div class="settings-item-left">
+                  <div class="settings-icon">🎨</div>
+                  <div class="settings-text">
+                    <div class="settings-item-title">纯色背景</div>
+                    <div class="settings-item-desc">多种纯色可选</div>
+                  </div>
+                </div>
+              </div>
+              <div class="color-preview-grid">
+                <div 
+                  v-for="(color, index) in solidBgColors.slice(0, 8)" 
+                  :key="index"
+                  class="color-preview-item"
+                  :class="{ active: currentBgType === 'solid' && currentSolidBg === color.color }"
+                  :style="{ background: color.color }"
+                  :title="color.name"
+                  @click="selectSolidBg(color.color)"
+                ></div>
+              </div>
+            </div>
           </div>
         </div>
-        
-        <button class="settings-close" @click="showProjectInfo = false">关闭</button>
+
+        <!-- 第二组：反馈与帮助 -->
+        <div class="settings-section">
+          <div class="section-title">反馈与帮助</div>
+          <div class="section-content">
+            <!-- 问题反馈 -->
+            <div class="settings-item" @click="showFeedbackModal = true">
+              <div class="settings-item-left">
+                <div class="settings-icon">🐛</div>
+                <div class="settings-text">
+                  <div class="settings-item-title">问题反馈</div>
+                  <div class="settings-item-desc">报告Bug或遇到的问题</div>
+                </div>
+              </div>
+              <span class="settings-arrow">›</span>
+            </div>
+
+            <!-- 功能建议 -->
+            <div class="settings-item" @click="showSuggestionModal = true">
+              <div class="settings-item-left">
+                <div class="settings-icon">💡</div>
+                <div class="settings-text">
+                  <div class="settings-item-title">功能建议</div>
+                  <div class="settings-item-desc">提出新功能或改进建议</div>
+                </div>
+              </div>
+              <span class="settings-arrow">›</span>
+            </div>
+
+            <!-- 使用帮助 -->
+            <div class="settings-item" @click="showHelpModal = true">
+              <div class="settings-item-left">
+                <div class="settings-icon">📖</div>
+                <div class="settings-text">
+                  <div class="settings-item-title">使用帮助</div>
+                  <div class="settings-item-desc">查看使用说明和常见问题</div>
+                </div>
+              </div>
+              <span class="settings-arrow">›</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第三组：缓存管理 -->
+        <div class="settings-section">
+          <div class="section-title">缓存管理</div>
+          <div class="section-content">
+            <!-- 清除天气缓存 -->
+            <div class="settings-item" @click="clearWeatherCache">
+              <div class="settings-item-left">
+                <div class="settings-icon">🌤️</div>
+                <div class="settings-text">
+                  <div class="settings-item-title">清除天气缓存</div>
+                  <div class="settings-item-desc">清除已缓存的天气数据</div>
+                </div>
+              </div>
+              <span class="settings-arrow">›</span>
+            </div>
+
+            <!-- 清除所有本地数据 -->
+            <div class="settings-item" @click="clearAllCache">
+              <div class="settings-item-left">
+                <div class="settings-icon">🗑️</div>
+                <div class="settings-text">
+                  <div class="settings-item-title">清除所有本地数据</div>
+                  <div class="settings-item-desc">清除所有缓存和本地存储</div>
+                </div>
+              </div>
+              <span class="settings-arrow">›</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第四组：项目信息 -->
+        <div class="settings-section">
+          <div class="section-title">项目信息</div>
+          <div class="section-content">
+            <!-- 关于项目 -->
+            <div class="settings-group">
+              <div class="group-label">关于项目</div>
+              <div class="info-card">
+                <div class="info-item">
+                  <span class="info-label">项目介绍</span>
+                  <span class="info-value">足球场地预约看板，实时查看场地预约情况，支持天气查询和预约管理</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">版本信息</span>
+                  <span class="info-value version-badge">v1.0.0</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">更新日志</span>
+                  <span class="info-value">v1.0.0 - 初始版本发布</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 开发者 -->
+            <div class="settings-group" style="margin-top: 16px;">
+              <div class="group-label">开发者</div>
+              <div class="info-card">
+                <div class="info-item">
+                  <span class="info-label">作者信息</span>
+                  <span class="info-value">pnnooy</span>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">GitHub仓库</span>
+                  <a href="https://github.com/pnnooy/football_booking_web" target="_blank" class="info-link">
+                    github.com/pnnooy/football_booking_web
+                  </a>
+                </div>
+                <div class="info-item">
+                  <span class="info-label">开源协议</span>
+                  <span class="info-value">MIT License</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 第五组：安全与隐私 -->
+        <div class="settings-section">
+          <div class="section-title">安全与隐私</div>
+          <div class="section-content">
+            <!-- 隐私设置 -->
+            <div class="settings-group">
+              <div class="group-label">隐私设置</div>
+              <div class="settings-item" @click="clearBrowsingHistory">
+                <div class="settings-item-left">
+                  <div class="settings-icon">🔒</div>
+                  <div class="settings-text">
+                    <div class="settings-item-title">清除浏览记录</div>
+                    <div class="settings-item-desc">清除本地浏览历史</div>
+                  </div>
+                </div>
+                <span class="settings-arrow">›</span>
+              </div>
+            </div>
+
+            <!-- 责任声明 -->
+            <div class="settings-group" style="margin-top: 16px;">
+              <div class="group-label">责任声明</div>
+              <div class="info-card">
+                <div class="info-section">
+                  <div class="info-section-title">使用条款</div>
+                  <div class="info-section-content">
+                    1. 本项目仅供学习和交流使用<br>
+                    2. 请合理安排预约时间，避免场地浪费<br>
+                    3. 预约成功后请按时到场
+                  </div>
+                </div>
+                <div class="info-section" style="margin-top: 12px;">
+                  <div class="info-section-title">免责声明</div>
+                  <div class="info-section-content">
+                    1. 场地实际状态以现场为准<br>
+                    2. 天气数据仅供参考<br>
+                    3. 因使用本项目造成的任何损失，开发者不承担责任
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 问题反馈弹窗 -->
+    <div v-if="showFeedbackModal" class="modal-overlay" @click="showFeedbackModal = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>问题反馈</h3>
+          <button class="modal-close" @click="showFeedbackModal = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <textarea class="modal-textarea" placeholder="请描述您遇到的问题..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-secondary" @click="showFeedbackModal = false">取消</button>
+          <button class="modal-btn modal-btn-primary" @click="submitFeedback">提交</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 功能建议弹窗 -->
+    <div v-if="showSuggestionModal" class="modal-overlay" @click="showSuggestionModal = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>功能建议</h3>
+          <button class="modal-close" @click="showSuggestionModal = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <textarea class="modal-textarea" placeholder="请描述您的建议..."></textarea>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-secondary" @click="showSuggestionModal = false">取消</button>
+          <button class="modal-btn modal-btn-primary" @click="submitSuggestion">提交</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 使用帮助弹窗 -->
+    <div v-if="showHelpModal" class="modal-overlay" @click="showHelpModal = false">
+      <div class="modal-content modal-content-large" @click.stop>
+        <div class="modal-header">
+          <h3>使用帮助</h3>
+          <button class="modal-close" @click="showHelpModal = false">✕</button>
+        </div>
+        <div class="modal-body help-content">
+          <div class="help-section">
+            <h4>📋 基本使用</h4>
+            <p>1. <strong>查看预约</strong>：选择日期后，下方会显示该日期的所有时间段预约情况</p>
+            <p>2. <strong>预约场地</strong>：点击"可预约"的时间段，输入管理员密码即可完成预约</p>
+            <p>3. <strong>取消预约</strong>：点击"已预约"的时间段，输入密码即可取消</p>
+          </div>
+          <div class="help-section">
+            <h4>🌤️ 天气功能</h4>
+            <p>1. 每个日期上方会显示当天的天气概况</p>
+            <p>2. 每个时间段会显示该时段的天气和降水概率</p>
+            <p>3. 天气数据每小时自动更新</p>
+          </div>
+          <div class="help-section">
+            <h4>⚙️ 设置功能</h4>
+            <p>1. <strong>更换背景</strong>：支持纯色背景和图片背景切换</p>
+            <p>2. <strong>分享功能</strong>：可将预约情况导出为图片分享</p>
+            <p>3. <strong>清除缓存</strong>：清除天气缓存或所有本地数据</p>
+          </div>
+          <div class="help-section">
+            <h4>❓ 常见问题</h4>
+            <p><strong>Q: 为什么显示"暂无数据"？</strong></p>
+            <p>A: 数据每天下午2点左右更新，请稍后再试。</p>
+            <p><strong>Q: 天气数据准确吗？</strong></p>
+            <p>A: 天气数据来自和风天气API，仅供参考。</p>
+            <p><strong>Q: 如何修改管理员密码？</strong></p>
+            <p>A: 目前需要联系开发者修改。</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -332,6 +535,9 @@ const solidBgColors = [
 const showSettings = ref(false)
 const showBgSettings = ref(false)
 const showProjectInfo = ref(false)
+const showFeedbackModal = ref(false)
+const showSuggestionModal = ref(false)
+const showHelpModal = ref(false)
 
 // 背景类型和当前选择
 const currentBgType = ref('solid') // 'solid' 或 'image'
@@ -512,13 +718,42 @@ function selectImageBg(img) {
   localStorage.setItem('imageBg', img)
 }
 
-// 清除缓存
-function clearCache() {
+// 清除天气缓存
+function clearWeatherCache() {
   localStorage.removeItem('weatherCache')
   localStorage.removeItem('hourlyWeatherCache')
   localStorage.removeItem('weatherCacheTime')
-  alert('缓存已清除！')
+  alert('天气缓存已清除！')
   fetchWeatherData()
+}
+
+// 清除所有本地数据
+function clearAllCache() {
+  if (confirm('确定要清除所有本地数据吗？此操作不可恢复。')) {
+    localStorage.clear()
+    alert('所有本地数据已清除！')
+    location.reload()
+  }
+}
+
+// 清除浏览记录
+function clearBrowsingHistory() {
+  if (confirm('确定要清除浏览记录吗？')) {
+    localStorage.removeItem('bookingHistory')
+    alert('浏览记录已清除！')
+  }
+}
+
+// 提交反馈
+function submitFeedback() {
+  alert('感谢您的反馈！我们会尽快处理。')
+  showFeedbackModal.value = false
+}
+
+// 提交建议
+function submitSuggestion() {
+  alert('感谢您的建议！我们会认真考虑。')
+  showSuggestionModal.value = false
 }
 
 // 刷新页面
@@ -1788,157 +2023,467 @@ button:active {
 }
 
 /* 设置弹窗样式 */
-.settings-modal {
+/* 设置页面 - 极简黑风格，占满全屏 */
+.settings-fullpage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: #0a0a0a;
+  z-index: 300;
   display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: #0a0a0a;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+.settings-back {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 10px;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.settings-back:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.back-arrow {
+  font-size: 20px;
+}
+
+.settings-header-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.settings-header-placeholder {
+  width: 40px;
+}
+
+.settings-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.settings-body::-webkit-scrollbar {
+  width: 4px;
+}
+
+.settings-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.settings-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+}
+
+/* 设置分组 */
+.settings-section {
+  margin-bottom: 24px;
+}
+
+.section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.section-content {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 8px;
+}
+
+.settings-group {
+  padding: 8px;
+}
+
+.group-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.35);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+  padding-left: 8px;
+}
+
+/* 设置项 */
+.settings-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 12px;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-align: left;
+  width: 100%;
+  color: #fff;
+}
+
+.settings-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.settings-item-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-icon {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.7);
+  flex-shrink: 0;
+}
+
+.settings-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-item-title {
+  font-size: 15px;
+  font-weight: 500;
+  color: #fff;
+}
+
+.settings-item-desc {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.settings-arrow {
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.25);
+  margin-left: 8px;
+}
+
+/* 背景预览网格 */
+.bg-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 8px;
+}
+
+.bg-preview-item {
+  aspect-ratio: 16/10;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+  background-size: cover;
+  background-position: center;
+}
+
+.bg-preview-item:hover {
+  transform: scale(1.02);
+}
+
+.bg-preview-item.active {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+/* 颜色预览网格 */
+.color-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 8px;
+  padding: 8px;
+}
+
+.color-preview-item {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 2px solid transparent;
+}
+
+.color-preview-item:hover {
+  transform: scale(1.1);
+}
+
+.color-preview-item.active {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+}
+
+/* 信息卡片 */
+.info-card {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  padding: 16px;
+  margin: 8px;
+}
+
+.info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 12px;
+}
+
+.info-item:last-child {
+  margin-bottom: 0;
+}
+
+.info-label {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.info-value {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
+.info-link {
+  font-size: 14px;
+  color: #60a5fa;
+  text-decoration: none;
+  word-break: break-all;
+}
+
+.info-link:hover {
+  text-decoration: underline;
+}
+
+.version-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.info-section {
+  margin-bottom: 16px;
+}
+
+.info-section:last-child {
+  margin-bottom: 0;
+}
+
+.info-section-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 6px;
+}
+
+.info-section-content {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.6;
+}
+
+/* 弹窗样式 */
+.modal-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.8);
-  z-index: 200;
+  display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 400;
+  padding: 20px;
 }
 
-.settings-content {
-  background: #252525;
-  border-radius: 20px;
-  padding: 30px;
-  width: 90%;
-  max-width: 400px;
-  max-height: 85vh;
-  overflow-y: auto;
-}
-
-.settings-content::-webkit-scrollbar {
-  width: 4px;
-}
-
-.settings-content::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.settings-content::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.2);
-  border-radius: 2px;
-}
-
-.settings-title {
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 24px;
-  text-align: center;
-}
-
-.settings-option {
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  margin-bottom: 12px;
-  cursor: pointer;
-  transition: all 0.3s;
-}
-
-.settings-option:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.settings-option-title {
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.settings-option-desc {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.settings-close {
-  display: block;
+.modal-content {
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   width: 100%;
-  padding: 14px;
-  margin-top: 20px;
-  background: rgba(255, 255, 255, 0.1);
-  border: none;
-  border-radius: 12px;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-content-large {
+  max-width: 480px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.modal-header h3 {
+  font-size: 17px;
+  font-weight: 600;
   color: #fff;
+}
+
+.modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.6);
   font-size: 16px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
-.settings-close:hover {
-  background: rgba(255, 255, 255, 0.2);
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
-.section-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin: 16px 0 10px;
+.modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
 }
 
-.section-label:first-of-type {
-  margin-top: 0;
+.modal-textarea {
+  width: 100%;
+  min-height: 120px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 15px;
+  font-family: inherit;
+  resize: vertical;
+  outline: none;
 }
 
-.bg-options {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.modal-textarea:focus {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.modal-textarea::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.modal-footer {
+  display: flex;
   gap: 12px;
-  margin-bottom: 20px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
-.bg-option {
-  aspect-ratio: 1;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.3s;
-  border: 2px solid transparent;
-}
-
-.bg-option:hover {
-  transform: scale(1.05);
-}
-
-.bg-option.active {
-  border-color: #fff;
-}
-
-.bg-option-image {
-  background-size: cover;
-  background-position: center;
-}
-
-.project-info-item {
-  padding: 12px 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.project-info-item:last-of-type {
-  border-bottom: none;
-}
-
-.project-info-label {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.5);
-  margin-bottom: 4px;
-}
-
-.project-info-value {
+.modal-btn {
+  flex: 1;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
   font-size: 15px;
   font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.project-info-link a {
-  color: #60a5fa;
-  text-decoration: none;
+.modal-btn-secondary {
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.8);
 }
 
-.project-info-link a:hover {
-  text-decoration: underline;
+.modal-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.modal-btn-primary {
+  background: rgba(255, 255, 255, 0.9);
+  color: #0a0a0a;
+}
+
+.modal-btn-primary:hover {
+  background: #fff;
+}
+
+/* 帮助内容 */
+.help-content {
+  padding: 16px;
+}
+
+.help-section {
+  margin-bottom: 24px;
+}
+
+.help-section:last-child {
+  margin-bottom: 0;
+}
+
+.help-section h4 {
+  font-size: 15px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 10px;
+}
+
+.help-section p {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  line-height: 1.7;
+  margin-bottom: 8px;
+}
+
+.help-section p:last-child {
+  margin-bottom: 0;
+}
+
+.help-section strong {
+  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
 }
 </style>
