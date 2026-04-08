@@ -242,27 +242,20 @@
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from './supabase'
 
-// 动态加载html2canvas
-let html2canvas = null
+// 动态加载html2canvas（仅CDN方式）
 async function loadHtml2Canvas() {
-  if (html2canvas) return html2canvas
-  
-  // 先尝试从node_modules加载
-  try {
-    const module = await import('html2canvas')
-    html2canvas = module.default
-    return html2canvas
-  } catch (e) {
-    console.log('从node_modules加载失败，尝试CDN')
-  }
-  
-  // 从CDN加载
   return new Promise((resolve, reject) => {
+    // 检查是否已经加载
+    if (window.html2canvas) {
+      resolve(window.html2canvas)
+      return
+    }
+    
+    // 从CDN加载
     const script = document.createElement('script')
     script.src = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js'
     script.onload = () => {
-      html2canvas = window.html2canvas
-      resolve(html2canvas)
+      resolve(window.html2canvas)
     }
     script.onerror = reject
     document.head.appendChild(script)
