@@ -158,10 +158,8 @@
           <div class="section-content">
             <!-- 背景设置 -->
             <div class="settings-group">
-              <div class="group-label">背景设置</div>
               <div class="settings-item" @click="showBgSettings = true">
                 <div class="settings-item-left">
-                  <div class="settings-icon"></div>
                   <div class="settings-text">
                     <div class="settings-item-title">更换背景</div>
                     <div class="settings-item-desc">选择图片背景或纯色背景</div>
@@ -251,10 +249,8 @@
           <div class="section-content">
             <!-- 关于项目 -->
             <div class="settings-group">
-              <div class="group-label">关于项目</div>
               <div class="settings-item" @click="showProjectInfo = true">
                 <div class="settings-item-left">
-                  <div class="settings-icon"></div>
                   <div class="settings-text">
                     <div class="settings-item-title">项目信息</div>
                     <div class="settings-item-desc">版本、更新日志等</div>
@@ -266,10 +262,8 @@
 
             <!-- 开发者 -->
             <div class="settings-group" style="margin-top: 8px;">
-              <div class="group-label">开发者</div>
               <div class="settings-item" @click="showDeveloperInfo = true">
                 <div class="settings-item-left">
-                  <div class="settings-icon"></div>
                   <div class="settings-text">
                     <div class="settings-item-title">开发者信息</div>
                     <div class="settings-item-desc">作者、仓库、协议等</div>
@@ -287,10 +281,8 @@
           <div class="section-content">
             <!-- 隐私设置 -->
             <div class="settings-group">
-              <div class="group-label">隐私设置</div>
               <div class="settings-item" @click="clearBrowsingHistory">
                 <div class="settings-item-left">
-                  <div class="settings-icon"></div>
                   <div class="settings-text">
                     <div class="settings-item-title">清除浏览记录</div>
                     <div class="settings-item-desc">清除本地浏览历史</div>
@@ -302,10 +294,8 @@
 
             <!-- 责任声明 -->
             <div class="settings-group" style="margin-top: 8px;">
-              <div class="group-label">责任声明</div>
               <div class="settings-item" @click="showLiabilityModal = true">
                 <div class="settings-item-left">
-                  <div class="settings-icon"></div>
                   <div class="settings-text">
                     <div class="settings-item-title">责任声明</div>
                     <div class="settings-item-desc">使用条款、免责声明等</div>
