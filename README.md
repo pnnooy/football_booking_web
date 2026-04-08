@@ -1,4 +1,6 @@
-# 足球场地预约看板
+# 足球场地预约看板 | Football Pitch Booking Board
+
+[English Version](README-en.md) | [中文版](README.md)
 
 一个简洁的足球场地预约情况看板系统，帮助你快速查看足球场地预约情况。
 
