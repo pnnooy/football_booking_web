@@ -217,7 +217,6 @@
             <!-- 清除天气缓存 -->
             <div class="settings-item" @click="clearWeatherCache">
               <div class="settings-item-left">
-                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">清除天气缓存</div>
                   <div class="settings-item-desc">清除已缓存的天气数据</div>
@@ -229,7 +228,6 @@
             <!-- 清除所有本地数据 -->
             <div class="settings-item" @click="clearAllCache">
               <div class="settings-item-left">
-                <div class="settings-icon"></div>
                 <div class="settings-text">
                   <div class="settings-item-title">清除所有本地数据</div>
                   <div class="settings-item-desc">清除所有缓存和本地存储</div>
@@ -1498,18 +1496,18 @@ function subscribeToBookings() {
 }
 
 /* 去除按钮默认的focus和active样式（保留按钮自定义的样式） */
-button {
+button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn) {
   outline: none !important;
   -webkit-tap-highlight-color: transparent !important;
   box-shadow: none !important;
 }
 
-button:focus {
+button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn):focus {
   outline: none !important;
   box-shadow: none !important;
 }
 
-button:active {
+button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn):active {
   background-color: transparent !important;
   box-shadow: none !important;
   outline: none !important;
@@ -2154,6 +2152,7 @@ button:active {
   overflow-y: auto;
   padding: 20px;
   -webkit-overflow-scrolling: touch;
+  background: #f8f9fa;
 }
 
 .settings-body::-webkit-scrollbar {
@@ -2171,28 +2170,37 @@ button:active {
 
 /* 设置分组 */
 .settings-section {
-  margin-bottom: 24px;
+  margin-bottom: 28px;
+}
+
+.settings-section:last-child {
+  margin-bottom: 0;
 }
 
 .section-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.4);
+  color: rgba(0, 0, 0, 0.45);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 12px;
+  letter-spacing: 0.6px;
+  margin-bottom: 10px;
   padding-left: 4px;
 }
 
 .section-content {
   background: rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   padding: 8px;
+  overflow: hidden;
 }
 
 .settings-group {
-  padding: 8px;
+  padding: 0;
+}
+
+.settings-group + .settings-group {
+  margin-top: 0;
 }
 
 .group-label {
@@ -2210,7 +2218,7 @@ button:active {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 12px;
+  padding: 16px 16px;
   background: transparent;
   border: none;
   border-radius: 12px;
@@ -2219,6 +2227,7 @@ button:active {
   text-align: left;
   width: 100%;
   color: #333333;
+  position: relative;
 }
 
 .settings-item:hover {
@@ -2229,6 +2238,7 @@ button:active {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 1;
 }
 
 .settings-icon {
@@ -2243,24 +2253,29 @@ button:active {
 .settings-text {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  flex: 1;
 }
 
 .settings-item-title {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 500;
   color: #333333;
+  line-height: 1.3;
 }
 
 .settings-item-desc {
-  font-size: 12px;
-  color: rgba(0, 0, 0, 0.4);
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
 }
 
 .settings-arrow {
-  font-size: 18px;
-  color: rgba(0, 0, 0, 0.25);
+  font-size: 20px;
+  color: rgba(0, 0, 0, 0.3);
   margin-left: 8px;
+  font-weight: 300;
+  flex-shrink: 0;
 }
 
 /* 背景预览网格 */
