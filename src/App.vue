@@ -239,8 +239,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from './supabase'
+import html2canvas from 'html2canvas'
 
 // 场地列表
 const venues = [
@@ -341,8 +342,77 @@ const loadingBgStyle = computed(() => {
 })
 
 // 分享预约情况
-function shareSchedule() {
-  alert('分享导出功能开发中，请稍后再试！')
+async function shareSchedule() {
+  try {
+    // 先隐藏固定按钮，防止截图时包含
+    const settingsBtn = document.querySelector('.settings-btn')
+    const shareBtn = document.querySelector('.share-btn')
+    if (settingsBtn) settingsBtn.style.display = 'none'
+    if (shareBtn) shareBtn.style.display = 'none'
+
+    // 等待DOM更新
+    await nextTick()
+
+    // 获取主内容区域
+    const element = document.querySelector('.main-content-wrapper')
+    if (!element) {
+      alert('无法获取页面内容')
+      return
+    }
+
+    // 使用html2canvas截图
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: null
+    })
+
+    // 恢复按钮显示
+    if (settingsBtn) settingsBtn.style.display = 'flex'
+    if (shareBtn) shareBtn.style.display = 'flex'
+
+    // 创建下载链接
+    const link = document.createElement('a')
+    const dateStr = new Date().toISOString().split('T')[0]
+    link.download = `足球场地预约_${dateStr}.png`
+    link.href = canvas.toDataURL('image/png')
+
+    // 触发下载
+    link.click()
+
+    // 尝试使用Web Share API（如果支持）
+    if (navigator.share) {
+      try {
+        // 将canvas转为blob
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            const file = new File([blob], `足球场地预约_${dateStr}.png`, { type: 'image/png' })
+            try {
+              await navigator.share({
+                title: '足球场地预约情况',
+                text: `查看${dateStr}的足球场地预约情况`,
+                files: [file]
+              })
+            } catch (err) {
+              console.log('分享被取消或不支持分享文件')
+            }
+          }
+        })
+      } catch (err) {
+        console.log('Web Share API不可用', err)
+      }
+    }
+
+  } catch (error) {
+    console.error('导出失败:', error)
+    alert('导出失败，请重试')
+    
+    // 确保按钮恢复显示
+    const settingsBtn = document.querySelector('.settings-btn')
+    const shareBtn = document.querySelector('.share-btn')
+    if (settingsBtn) settingsBtn.style.display = 'flex'
+    if (shareBtn) shareBtn.style.display = 'flex'
+  }
 }
 
 // 选择纯色背景
