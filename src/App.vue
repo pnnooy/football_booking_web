@@ -1495,20 +1495,19 @@ function subscribeToBookings() {
   box-sizing: border-box;
 }
 
-/* 去除按钮默认的focus和active样式（保留按钮自定义的样式） */
-button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn) {
-  outline: none !important;
+/* 去除所有按钮的点击高亮效果 */
+button {
   -webkit-tap-highlight-color: transparent !important;
-  box-shadow: none !important;
-}
-
-button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn):focus {
   outline: none !important;
   box-shadow: none !important;
 }
 
-button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn):active {
-  background-color: transparent !important;
+button:focus {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+button:active {
   box-shadow: none !important;
   outline: none !important;
 }
@@ -2127,6 +2126,7 @@ button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn)
   color: #333333;
   cursor: pointer;
   transition: all 0.3s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .settings-back:hover {
@@ -2229,6 +2229,7 @@ button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn)
   width: 100%;
   color: #333333;
   position: relative;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .settings-item:hover {
@@ -2463,6 +2464,7 @@ button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn)
   font-size: 16px;
   cursor: pointer;
   transition: all 0.3s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .modal-close:hover {
@@ -2515,6 +2517,7 @@ button:not(.settings-item):not(.settings-back):not(.modal-close):not(.modal-btn)
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .modal-btn-secondary {
