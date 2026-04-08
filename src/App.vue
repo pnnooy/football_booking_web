@@ -1425,11 +1425,11 @@ button:active {
 }
 
 .time-slot.available {
-  background: #3b82f6;
+  background: #1d4ed8;
 }
 
 .time-slot.available:hover {
-  background: #60a5fa;
+  background: #3b82f6;
 }
 
 .time-slot.unavailable {
@@ -1449,11 +1449,11 @@ button:active {
 }
 
 .time-slot.booked {
-  background: #10b981;
+  background: #059669;
 }
 
 .time-slot.booked:hover {
-  background: #34d399;
+  background: #10b981;
 }
 
 .time-slot.expired {
