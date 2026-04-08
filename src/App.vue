@@ -342,7 +342,7 @@ const loadingBgImage = ref('') // 加载页随机背景
 const appStyle = computed(() => {
   if (currentBgType.value === 'image') {
     return {
-      backgroundImage: `url(/bg/${currentBgImage.value})`,
+      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(/bg/${currentBgImage.value})`,
       backgroundSize: 'cover',
       backgroundPosition: 'center',
       backgroundRepeat: 'no-repeat'
