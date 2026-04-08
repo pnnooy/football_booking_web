@@ -8,8 +8,12 @@
 
     <!-- 主内容 -->
     <div v-else class="main-content-wrapper">
-    <button class="settings-btn" @click="showSettings = true">⚙</button>
-    <button class="share-btn" @click="shareSchedule">📤</button>
+    <button class="settings-btn" @click="showSettings = true">
+      <img src="/icons/settings.svg" alt="设置" class="icon-img">
+    </button>
+    <button class="share-btn" @click="shareSchedule">
+      <img src="/icons/share.svg" alt="分享" class="icon-img">
+    </button>
     
     <header class="header">
       <h1>场地预约情况</h1>
@@ -1240,6 +1244,10 @@ button:active {
   transform: rotate(45deg);
 }
 
+.settings-btn:hover .icon-img {
+  transform: rotate(45deg);
+}
+
 /* 分享按钮 */
 .share-btn {
   position: fixed;
@@ -1263,6 +1271,15 @@ button:active {
 .share-btn:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: scale(1.1);
+}
+
+/* SVG图标样式 */
+.icon-img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  filter: invert(1);
+  transition: all 0.3s;
 }
 
 /* 主内容容器 */
