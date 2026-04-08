@@ -1,7 +1,7 @@
 <template>
   <div class="app" :style="appStyle">
     <!-- 加载界面 -->
-    <div v-if="isLoading" class="loading-screen">
+    <div v-if="isLoading" class="loading-screen" :style="loadingBgStyle">
       <div class="loading-spinner"></div>
       <p class="loading-text">正在加载场地预约数据...</p>
     </div>
@@ -9,6 +9,7 @@
     <!-- 主内容 -->
     <div v-else class="main-content-wrapper">
     <button class="settings-btn" @click="showSettings = true">⚙</button>
+    <button class="share-btn" @click="shareSchedule">📤</button>
     
     <header class="header">
       <h1>场地预约情况</h1>
@@ -238,8 +239,9 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from './supabase'
+import html2canvas from 'html2canvas'
 
 // 场地列表
 const venues = [
@@ -311,6 +313,7 @@ const showProjectInfo = ref(false)
 // 背景类型和当前选择
 const currentBgType = ref('solid') // 'solid' 或 'image'
 const currentSolidBg = ref('#232d3f') // 默认靛蓝灰
+const loadingBgImage = ref('') // 加载页随机背景
 
 // 计算应用样式
 const appStyle = computed(() => {
@@ -327,6 +330,90 @@ const appStyle = computed(() => {
     }
   }
 })
+
+// 加载页背景样式
+const loadingBgStyle = computed(() => {
+  return {
+    backgroundImage: `url(/bg/${loadingBgImage.value})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
+  }
+})
+
+// 分享预约情况
+async function shareSchedule() {
+  try {
+    // 先隐藏固定按钮，防止截图时包含
+    const settingsBtn = document.querySelector('.settings-btn')
+    const shareBtn = document.querySelector('.share-btn')
+    if (settingsBtn) settingsBtn.style.display = 'none'
+    if (shareBtn) shareBtn.style.display = 'none'
+
+    // 等待DOM更新
+    await nextTick()
+
+    // 获取主内容区域
+    const element = document.querySelector('.main-content-wrapper')
+    if (!element) {
+      alert('无法获取页面内容')
+      return
+    }
+
+    // 使用html2canvas截图
+    const canvas = await html2canvas(element, {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: null
+    })
+
+    // 恢复按钮显示
+    if (settingsBtn) settingsBtn.style.display = 'flex'
+    if (shareBtn) shareBtn.style.display = 'flex'
+
+    // 创建下载链接
+    const link = document.createElement('a')
+    const dateStr = new Date().toISOString().split('T')[0]
+    link.download = `足球场地预约_${dateStr}.png`
+    link.href = canvas.toDataURL('image/png')
+
+    // 触发下载
+    link.click()
+
+    // 尝试使用Web Share API（如果支持）
+    if (navigator.share) {
+      try {
+        // 将canvas转为blob
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            const file = new File([blob], `足球场地预约_${dateStr}.png`, { type: 'image/png' })
+            try {
+              await navigator.share({
+                title: '足球场地预约情况',
+                text: `查看${dateStr}的足球场地预约情况`,
+                files: [file]
+              })
+            } catch (err) {
+              console.log('分享被取消或不支持分享文件')
+            }
+          }
+        })
+      } catch (err) {
+        console.log('Web Share API不可用', err)
+      }
+    }
+
+  } catch (error) {
+    console.error('导出失败:', error)
+    alert('导出失败，请重试')
+    
+    // 确保按钮恢复显示
+    const settingsBtn = document.querySelector('.settings-btn')
+    const shareBtn = document.querySelector('.share-btn')
+    if (settingsBtn) settingsBtn.style.display = 'flex'
+    if (shareBtn) shareBtn.style.display = 'flex'
+  }
+}
 
 // 选择纯色背景
 function selectSolidBg(color) {
@@ -525,6 +612,10 @@ function getHourlyWeather(dateStr, hour) {
 
 // 初始化 selectedDate 为今天
 onMounted(() => {
+  // 设置加载页随机背景
+  const randomIndex = Math.floor(Math.random() * bgImages.length)
+  loadingBgImage.value = bgImages[randomIndex]
+  
   // 从localStorage读取背景设置
   const savedBgType = localStorage.getItem('bgType')
   const savedSolidBg = localStorage.getItem('solidBg')
@@ -1072,6 +1163,31 @@ button:active {
   transform: rotate(45deg);
 }
 
+/* 分享按钮 */
+.share-btn {
+  position: fixed;
+  top: 74px;
+  right: 20px;
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: #fff;
+  transition: all 0.3s;
+  z-index: 100;
+}
+
+.share-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.1);
+}
+
 /* 主内容容器 */
 .main-content-wrapper {
   min-height: 100vh;
@@ -1243,7 +1359,8 @@ button:active {
 
 .date-week {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.7);
   margin-top: 4px;
 }
 
@@ -1278,6 +1395,7 @@ button:active {
 .weather-icon {
   font-size: 24px;
   line-height: 1;
+  color: #fff !important;
 }
 
 .weather-desc {
@@ -1377,35 +1495,35 @@ button:active {
 }
 
 .time-slot.available {
-  background: #3b82f6;
+  background: #4a5568;
 }
 
 .time-slot.available:hover {
-  background: #60a5fa;
+  background: #5a6578;
 }
 
 .time-slot.unavailable {
-  background: #6b7280;
+  background: #52525b;
 }
 
 .time-slot.unavailable:hover {
-  background: #9ca3af;
+  background: #62626b;
 }
 
 .time-slot.unbooked {
-  background: #6b7280;
+  background: #52525b;
 }
 
 .time-slot.unbooked:hover {
-  background: #9ca3af;
+  background: #62626b;
 }
 
 .time-slot.booked {
-  background: #10b981;
+  background: #4b5563;
 }
 
 .time-slot.booked:hover {
-  background: #34d399;
+  background: #5b6573;
 }
 
 .time-slot.expired {
