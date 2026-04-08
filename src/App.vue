@@ -252,40 +252,30 @@
             <!-- 关于项目 -->
             <div class="settings-group">
               <div class="group-label">关于项目</div>
-              <div class="info-card">
-                <div class="info-item">
-                  <span class="info-label">项目介绍</span>
-                  <span class="info-value">足球场地预约看板，实时查看场地预约情况，支持天气查询和预约管理</span>
+              <div class="settings-item" @click="showProjectInfo = true">
+                <div class="settings-item-left">
+                  <div class="settings-icon"></div>
+                  <div class="settings-text">
+                    <div class="settings-item-title">项目信息</div>
+                    <div class="settings-item-desc">版本、更新日志等</div>
+                  </div>
                 </div>
-                <div class="info-item">
-                  <span class="info-label">版本信息</span>
-                  <span class="info-value version-badge">v1.0.0</span>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">更新日志</span>
-                  <span class="info-value">v1.0.0 - 初始版本发布</span>
-                </div>
+                <span class="settings-arrow">›</span>
               </div>
             </div>
 
             <!-- 开发者 -->
-            <div class="settings-group" style="margin-top: 16px;">
+            <div class="settings-group" style="margin-top: 8px;">
               <div class="group-label">开发者</div>
-              <div class="info-card">
-                <div class="info-item">
-                  <span class="info-label">作者信息</span>
-                  <span class="info-value">pnnooy</span>
+              <div class="settings-item" @click="showDeveloperInfo = true">
+                <div class="settings-item-left">
+                  <div class="settings-icon"></div>
+                  <div class="settings-text">
+                    <div class="settings-item-title">开发者信息</div>
+                    <div class="settings-item-desc">作者、仓库、协议等</div>
+                  </div>
                 </div>
-                <div class="info-item">
-                  <span class="info-label">GitHub仓库</span>
-                  <a href="https://github.com/pnnooy/football_booking_web" target="_blank" class="info-link">
-                    github.com/pnnooy/football_booking_web
-                  </a>
-                </div>
-                <div class="info-item">
-                  <span class="info-label">开源协议</span>
-                  <span class="info-value">MIT License</span>
-                </div>
+                <span class="settings-arrow">›</span>
               </div>
             </div>
           </div>
@@ -311,25 +301,17 @@
             </div>
 
             <!-- 责任声明 -->
-            <div class="settings-group" style="margin-top: 16px;">
+            <div class="settings-group" style="margin-top: 8px;">
               <div class="group-label">责任声明</div>
-              <div class="info-card">
-                <div class="info-section">
-                  <div class="info-section-title">使用条款</div>
-                  <div class="info-section-content">
-                    1. 本项目仅供学习和交流使用<br>
-                    2. 请合理安排预约时间，避免场地浪费<br>
-                    3. 预约成功后请按时到场
+              <div class="settings-item" @click="showLiabilityModal = true">
+                <div class="settings-item-left">
+                  <div class="settings-icon"></div>
+                  <div class="settings-text">
+                    <div class="settings-item-title">责任声明</div>
+                    <div class="settings-item-desc">使用条款、免责声明等</div>
                   </div>
                 </div>
-                <div class="info-section" style="margin-top: 12px;">
-                  <div class="info-section-title">免责声明</div>
-                  <div class="info-section-content">
-                    1. 场地实际状态以现场为准<br>
-                    2. 天气数据仅供参考<br>
-                    3. 因使用本项目造成的任何损失，开发者不承担责任
-                  </div>
-                </div>
+                <span class="settings-arrow">›</span>
               </div>
             </div>
           </div>
@@ -406,6 +388,99 @@
         <div class="modal-footer">
           <button class="modal-btn modal-btn-secondary" @click="showSuggestionModal = false">取消</button>
           <button class="modal-btn modal-btn-primary" @click="submitSuggestion">提交</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 项目信息弹窗 -->
+    <div v-if="showProjectInfo" class="modal-overlay" @click="showProjectInfo = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>项目信息</h3>
+          <button class="modal-close" @click="showProjectInfo = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-card">
+            <div class="info-item">
+              <span class="info-label">项目介绍</span>
+              <span class="info-value">足球场地预约看板，实时查看场地预约情况，支持天气查询和预约管理</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">版本信息</span>
+              <span class="info-value version-badge">v1.0.0</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">更新日志</span>
+              <span class="info-value">v1.0.0 - 初始版本发布</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-primary" @click="showProjectInfo = false">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 开发者信息弹窗 -->
+    <div v-if="showDeveloperInfo" class="modal-overlay" @click="showDeveloperInfo = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>开发者信息</h3>
+          <button class="modal-close" @click="showDeveloperInfo = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-card">
+            <div class="info-item">
+              <span class="info-label">作者信息</span>
+              <span class="info-value">pnnooy</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">GitHub仓库</span>
+              <a href="https://github.com/pnnooy/football_booking_web" target="_blank" class="info-link">
+                github.com/pnnooy/football_booking_web
+              </a>
+            </div>
+            <div class="info-item">
+              <span class="info-label">开源协议</span>
+              <span class="info-value">MIT License</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-primary" @click="showDeveloperInfo = false">确定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 责任声明弹窗 -->
+    <div v-if="showLiabilityModal" class="modal-overlay" @click="showLiabilityModal = false">
+      <div class="modal-content modal-content-large" @click.stop>
+        <div class="modal-header">
+          <h3>责任声明</h3>
+          <button class="modal-close" @click="showLiabilityModal = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-card">
+            <div class="info-section">
+              <div class="info-section-title">使用条款</div>
+              <div class="info-section-content">
+                1. 本项目仅供学习和交流使用<br>
+                2. 请合理安排预约时间，避免场地浪费<br>
+                3. 预约成功后请按时到场
+              </div>
+            </div>
+            <div class="info-section" style="margin-top: 12px;">
+              <div class="info-section-title">免责声明</div>
+              <div class="info-section-content">
+                1. 场地实际状态以现场为准<br>
+                2. 天气数据仅供参考<br>
+                3. 因使用本项目造成的任何损失，开发者不承担责任
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-primary" @click="showLiabilityModal = false">确定</button>
         </div>
       </div>
     </div>
@@ -541,6 +616,8 @@ const solidBgColors = [
 const showSettings = ref(false)
 const showBgSettings = ref(false)
 const showProjectInfo = ref(false)
+const showDeveloperInfo = ref(false)
+const showLiabilityModal = ref(false)
 const showFeedbackModal = ref(false)
 const showSuggestionModal = ref(false)
 const showHelpModal = ref(false)
@@ -2173,10 +2250,6 @@ button:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 8px;
-  font-size: 16px;
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.7);
   flex-shrink: 0;
 }
 
