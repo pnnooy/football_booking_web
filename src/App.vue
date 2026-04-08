@@ -1467,7 +1467,7 @@ button:active {
   right: 20px;
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #333333;
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -1481,7 +1481,7 @@ button:active {
 }
 
 .settings-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #444444;
   transform: rotate(45deg);
 }
 
@@ -1496,7 +1496,7 @@ button:active {
   right: 20px;
   width: 44px;
   height: 44px;
-  background: rgba(255, 255, 255, 0.1);
+  background: #333333;
   border: none;
   border-radius: 50%;
   cursor: pointer;
@@ -1510,7 +1510,7 @@ button:active {
 }
 
 .share-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  background: #444444;
   transform: scale(1.1);
 }
 
