@@ -386,7 +386,10 @@ async function shareSchedule() {
     const canvas = await h2c(element, {
       scale: 2,
       useCORS: true,
-      backgroundColor: null
+      backgroundColor: currentBgType.value === 'solid' ? currentSolidBg.value : '#0a0a0a',
+      allowTaint: true,
+      logging: false,
+      letterRendering: true
     })
 
     // 恢复按钮显示
@@ -399,29 +402,81 @@ async function shareSchedule() {
     link.download = `足球场地预约_${dateStr}.png`
     link.href = canvas.toDataURL('image/png')
 
-    // 触发下载
-    link.click()
-
-    // 尝试使用Web Share API（如果支持）
-    if (navigator.share) {
-      try {
-        // 将canvas转为blob
-        canvas.toBlob(async (blob) => {
-          if (blob) {
-            const file = new File([blob], `足球场地预约_${dateStr}.png`, { type: 'image/png' })
-            try {
-              await navigator.share({
-                title: '足球场地预约情况',
-                text: `查看${dateStr}的足球场地预约情况`,
-                files: [file]
-              })
-            } catch (err) {
-              console.log('分享被取消或不支持分享文件')
+    // 检测是否在微信浏览器中
+    const isWeChat = /MicroMessenger/i.test(navigator.userAgent)
+    
+    if (isWeChat) {
+      // 在微信中，显示预览图让用户长按保存
+      const previewImg = document.createElement('img')
+      previewImg.src = canvas.toDataURL('image/png')
+      previewImg.style.maxWidth = '90%'
+      previewImg.style.maxHeight = '80vh'
+      previewImg.style.borderRadius = '12px'
+      
+      const previewDiv = document.createElement('div')
+      previewDiv.style.position = 'fixed'
+      previewDiv.style.top = '0'
+      previewDiv.style.left = '0'
+      previewDiv.style.right = '0'
+      previewDiv.style.bottom = '0'
+      previewDiv.style.background = 'rgba(0,0,0,0.9)'
+      previewDiv.style.display = 'flex'
+      previewDiv.style.flexDirection = 'column'
+      previewDiv.style.alignItems = 'center'
+      previewDiv.style.justifyContent = 'center'
+      previewDiv.style.zIndex = '9999'
+      
+      const hintText = document.createElement('div')
+      hintText.style.color = '#fff'
+      hintText.style.fontSize = '16px'
+      hintText.style.marginTop = '20px'
+      hintText.style.textAlign = 'center'
+      hintText.innerHTML = '长按图片保存到相册\n或分享给好友'
+      
+      const closeBtn = document.createElement('button')
+      closeBtn.innerText = '关闭'
+      closeBtn.style.marginTop = '20px'
+      closeBtn.style.padding = '10px 30px'
+      closeBtn.style.background = 'rgba(255,255,255,0.2)'
+      closeBtn.style.border = 'none'
+      closeBtn.style.borderRadius = '20px'
+      closeBtn.style.color = '#fff'
+      closeBtn.style.fontSize = '14px'
+      closeBtn.style.cursor = 'pointer'
+      
+      closeBtn.addEventListener('click', () => {
+        document.body.removeChild(previewDiv)
+      })
+      
+      previewDiv.appendChild(previewImg)
+      previewDiv.appendChild(hintText)
+      previewDiv.appendChild(closeBtn)
+      document.body.appendChild(previewDiv)
+    } else {
+      // 非微信浏览器，正常下载
+      link.click()
+      
+      // 尝试使用Web Share API（如果支持）
+      if (navigator.share) {
+        try {
+          // 将canvas转为blob
+          canvas.toBlob(async (blob) => {
+            if (blob) {
+              const file = new File([blob], `足球场地预约_${dateStr}.png`, { type: 'image/png' })
+              try {
+                await navigator.share({
+                  title: '足球场地预约情况',
+                  text: `查看${dateStr}的足球场地预约情况`,
+                  files: [file]
+                })
+              } catch (err) {
+                console.log('分享被取消或不支持分享文件')
+              }
             }
-          }
-        })
-      } catch (err) {
-        console.log('Web Share API不可用', err)
+          })
+        } catch (err) {
+          console.log('Web Share API不可用', err)
+        }
       }
     }
 
