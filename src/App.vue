@@ -205,8 +205,8 @@ async function fetchWeatherData() {
   const cacheTime = localStorage.getItem('weatherCacheTime')
   const now = Date.now()
 
-  // 如果缓存存在且未超过3小时，直接使用缓存
-  if (cachedData && cachedHourlyData && cacheTime && (now - parseInt(cacheTime)) < 3 * 60 * 60 * 1000) {
+  // 如果缓存存在且未超过10分钟，直接使用缓存
+  if (cachedData && cachedHourlyData && cacheTime && (now - parseInt(cacheTime)) < 10 * 60 * 1000) {
     weatherData.value = JSON.parse(cachedData)
     hourlyWeatherData.value = JSON.parse(cachedHourlyData)
     console.log('Using cached weather data')
@@ -215,10 +215,10 @@ async function fetchWeatherData() {
 
   weatherLoading.value = true
   try {
-    // 并行请求7日预报和逐小时预报
+    // 并行请求10日预报和72小时逐小时预报
     const [dailyResponse, hourlyResponse] = await Promise.all([
-      fetch(`https://${QWEATHER_API_HOST}/v7/weather/7d?location=${QWEATHER_LOCATION}&key=${QWEATHER_API_KEY}`),
-      fetch(`https://${QWEATHER_API_HOST}/v7/weather/24h?location=${QWEATHER_LOCATION}&key=${QWEATHER_API_KEY}`)
+      fetch(`https://${QWEATHER_API_HOST}/v7/weather/10d?location=${QWEATHER_LOCATION}&key=${QWEATHER_API_KEY}`),
+      fetch(`https://${QWEATHER_API_HOST}/v7/weather/72h?location=${QWEATHER_LOCATION}&key=${QWEATHER_API_KEY}`)
     ])
 
     if (!dailyResponse.ok || !hourlyResponse.ok) throw new Error('Weather API failed')
@@ -239,12 +239,20 @@ async function fetchWeatherData() {
       })
     }
 
-    // 处理逐小时预报数据（最近48小时）
+    // 处理逐小时预报数据（今天和明天两天）
     if (hourlyData.hourly) {
       const now = new Date()
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const tomorrow = new Date(today)
+      tomorrow.setDate(tomorrow.getDate() + 1)
+      const dayAfterTomorrow = new Date(tomorrow)
+      dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 1)
+      
       hourlyWeatherData.value = hourlyData.hourly
-        .filter(hour => new Date(hour.fxTime) >= now)
-        .slice(0, 48)
+        .filter(hour => {
+          const hourDate = new Date(hour.fxTime)
+          return hourDate >= now && hourDate < dayAfterTomorrow
+        })
         .map(hour => ({
           time: hour.fxTime,
           temp: parseInt(hour.temp),
