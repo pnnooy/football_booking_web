@@ -2283,13 +2283,13 @@ button:active {
 /* 背景预览网格 */
 .bg-preview-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
   padding: 8px;
 }
 
 .bg-preview-item {
-  aspect-ratio: 16/10;
+  aspect-ratio: 9/16;
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s;
