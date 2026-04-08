@@ -2106,14 +2106,14 @@ button:active {
 }
 
 /* 设置弹窗样式 */
-/* 设置页面 - 极简黑风格，占满全屏 */
+/* 设置页面 - 白色风格，占满全屏 */
 .settings-fullpage {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: #0a0a0a;
+  background: #ffffff;
   z-index: 300;
   display: flex;
   flex-direction: column;
@@ -2125,8 +2125,8 @@ button:active {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: #0a0a0a;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background: #ffffff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   flex-shrink: 0;
 }
 
@@ -2136,16 +2136,16 @@ button:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.06);
   border: none;
   border-radius: 10px;
-  color: #fff;
+  color: #333333;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .settings-back:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .back-arrow {
@@ -2155,7 +2155,7 @@ button:active {
 .settings-header-title {
   font-size: 18px;
   font-weight: 600;
-  color: #fff;
+  color: #333333;
 }
 
 .settings-header-placeholder {
@@ -2178,7 +2178,7 @@ button:active {
 }
 
 .settings-body::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 2px;
 }
 
@@ -2190,7 +2190,7 @@ button:active {
 .section-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(0, 0, 0, 0.4);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 12px;
@@ -2198,8 +2198,8 @@ button:active {
 }
 
 .section-content {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 16px;
   padding: 8px;
 }
@@ -2211,7 +2211,7 @@ button:active {
 .group-label {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(0, 0, 0, 0.35);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
@@ -2231,11 +2231,11 @@ button:active {
   transition: all 0.3s;
   text-align: left;
   width: 100%;
-  color: #fff;
+  color: #333333;
 }
 
 .settings-item:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .settings-item-left {
@@ -2262,17 +2262,17 @@ button:active {
 .settings-item-title {
   font-size: 15px;
   font-weight: 500;
-  color: #fff;
+  color: #333333;
 }
 
 .settings-item-desc {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .settings-arrow {
   font-size: 18px;
-  color: rgba(255, 255, 255, 0.25);
+  color: rgba(0, 0, 0, 0.25);
   margin-left: 8px;
 }
 
@@ -2299,8 +2299,8 @@ button:active {
 }
 
 .bg-preview-item.active {
-  border-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  border-color: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
 /* 颜色预览网格 */
@@ -2324,13 +2324,14 @@ button:active {
 }
 
 .color-preview-item.active {
-  border-color: rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.1);
+  border-color: rgba(0, 0, 0, 0.6);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
 /* 信息卡片 */
 .info-card {
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 12px;
   padding: 16px;
   margin: 8px;
@@ -2349,18 +2350,18 @@ button:active {
 
 .info-label {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .info-value {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
   line-height: 1.5;
 }
 
 .info-link {
   font-size: 14px;
-  color: #60a5fa;
+  color: #1976d2;
   text-decoration: none;
   word-break: break-all;
 }
@@ -2372,11 +2373,11 @@ button:active {
 .version-badge {
   display: inline-block;
   padding: 2px 10px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.06);
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.7);
 }
 
 .info-section {
@@ -2390,13 +2391,13 @@ button:active {
 .info-section-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.5);
+  color: rgba(0, 0, 0, 0.5);
   margin-bottom: 6px;
 }
 
 .info-section-content {
   font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.7);
   line-height: 1.6;
 }
 
@@ -2407,7 +2408,7 @@ button:active {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.8);
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2416,8 +2417,8 @@ button:active {
 }
 
 .modal-content {
-  background: #1a1a1a;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 16px;
   width: 100%;
   max-width: 400px;
@@ -2425,6 +2426,7 @@ button:active {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
 }
 
 .modal-content-large {
@@ -2436,13 +2438,13 @@ button:active {
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .modal-header h3 {
   font-size: 17px;
   font-weight: 600;
-  color: #fff;
+  color: #333333;
 }
 
 .modal-close {
@@ -2451,18 +2453,18 @@ button:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(0, 0, 0, 0.06);
   border: none;
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.6);
+  color: rgba(0, 0, 0, 0.6);
   font-size: 16px;
   cursor: pointer;
   transition: all 0.3s;
 }
 
 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: rgba(0, 0, 0, 0.1);
+  color: #333333;
 }
 
 .modal-body {
@@ -2475,10 +2477,10 @@ button:active {
   width: 100%;
   min-height: 120px;
   padding: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 10px;
-  color: #fff;
+  color: #333333;
   font-size: 15px;
   font-family: inherit;
   resize: vertical;
@@ -2486,19 +2488,19 @@ button:active {
 }
 
 .modal-textarea:focus {
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.07);
+  border-color: rgba(0, 0, 0, 0.2);
+  background: rgba(0, 0, 0, 0.04);
 }
 
 .modal-textarea::placeholder {
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(0, 0, 0, 0.3);
 }
 
 .modal-footer {
   display: flex;
   gap: 12px;
   padding: 16px 20px 20px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .modal-btn {
@@ -2513,21 +2515,21 @@ button:active {
 }
 
 .modal-btn-secondary {
-  background: rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.8);
 }
 
 .modal-btn-secondary:hover {
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .modal-btn-primary {
-  background: rgba(255, 255, 255, 0.9);
-  color: #0a0a0a;
+  background: #333333;
+  color: #ffffff;
 }
 
 .modal-btn-primary:hover {
-  background: #fff;
+  background: #444444;
 }
 
 /* 帮助内容 */
@@ -2546,13 +2548,13 @@ button:active {
 .help-section h4 {
   font-size: 15px;
   font-weight: 600;
-  color: #fff;
+  color: #333333;
   margin-bottom: 10px;
 }
 
 .help-section p {
   font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(0, 0, 0, 0.7);
   line-height: 1.7;
   margin-bottom: 8px;
 }
@@ -2562,7 +2564,7 @@ button:active {
 }
 
 .help-section strong {
-  color: rgba(255, 255, 255, 0.9);
+  color: rgba(0, 0, 0, 0.9);
   font-weight: 500;
 }
 </style>
