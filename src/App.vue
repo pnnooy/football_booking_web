@@ -14,7 +14,7 @@
           <header class="page-header">
             <div class="page-header-content">
               <h1>{{ venues[0].name }}</h1>
-              <button class="share-btn-fixed" @click="shareSchedule"><img src="/icons/share.svg" alt="分享" class="icon-share"></button>
+              <button class="share-btn-fixed" @click="shareSchedule"><img :src="iconShare" alt="分享" class="icon-share"></button>
             </div>
           </header>
 
@@ -224,11 +224,11 @@
       <!-- 底栏导航 -->
       <nav class="tab-bar">
         <button class="tab-item" :class="{ active: currentPage === 'venue' }" @click="switchPage('venue')">
-          <img src="/icons/court.svg" alt="场地情况" class="tab-icon">
+          <img :src="iconCourt" alt="场地情况" class="tab-icon">
           <span class="tab-label">场地情况</span>
         </button>
         <button class="tab-item" :class="{ active: currentPage === 'settings' }" @click="switchPage('settings')">
-          <img src="/icons/settings.svg" alt="设置" class="tab-icon">
+          <img :src="iconSettings" alt="设置" class="tab-icon">
           <span class="tab-label">设置</span>
         </button>
       </nav>
@@ -453,6 +453,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from './supabase'
+import iconShare from '/icons/share.svg?url'
+import iconCourt from '/icons/court.svg?url'
+import iconSettings from '/icons/settings.svg?url'
 
 // 动态加载html2canvas（仅CDN方式）
 async function loadHtml2Canvas() {
