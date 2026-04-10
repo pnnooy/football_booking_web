@@ -14,7 +14,13 @@
           <header class="page-header">
             <div class="page-header-content">
               <h1>{{ venues[0].name }}</h1>
-              <button class="share-btn-fixed" @click="shareSchedule"><img :src="iconShare" alt="分享" class="icon-share"></button>
+              <button class="share-btn-fixed" @click="shareSchedule">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link icon-share">
+                  <path d="M15 3h6v6"></path>
+                  <path d="M10 14 21 3"></path>
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                </svg>
+              </button>
             </div>
           </header>
 
@@ -224,11 +230,16 @@
       <!-- 底栏导航 -->
       <nav class="tab-bar">
         <button class="tab-item" :class="{ active: currentPage === 'venue' }" @click="switchPage('venue')">
-          <img :src="iconCourt" alt="场地情况" class="tab-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56" class="tab-icon">
+            <path fill="currentColor" d="M6.224 48.672h43.552c4.143 0 6.224-2.061 6.224-6.145V16.62c0-4.084-2.081-6.146-6.224-6.146H6.224C2.101 10.473 0 12.515 0 16.62v25.908c0 4.084 2.101 6.145 6.224 6.145m.06-3.191c-1.982 0-3.092-1.07-3.092-3.132v-2.874h5.57c2.933 0 4.658-1.725 4.658-4.659V24.31c0-2.934-1.725-4.658-4.658-4.658h-5.57v-2.875c0-2.042 1.11-3.112 3.092-3.112h20.06v6.68c-4.42.714-7.75 4.54-7.75 9.218s3.33 8.504 7.75 9.238v6.68Zm31.003-15.918c-.04-4.658-3.31-8.425-7.75-9.198v-6.7h20.179c1.962 0 3.092 1.07 3.092 3.112v2.874h-5.57c-2.934 0-4.658 1.725-4.658 4.659v10.506c0 2.934 1.724 4.658 4.658 4.658h5.57v2.875c0 2.061-1.13 3.132-3.092 3.132h-20.18V38.8c4.46-.754 7.81-4.56 7.751-9.238m10.01 6.72c-.971 0-1.526-.555-1.526-1.526V24.369c0-.971.555-1.526 1.526-1.526h5.511v13.44ZM8.703 22.843c.972 0 1.527.555 1.527 1.526v10.388c0 .97-.555 1.526-1.527 1.526h-5.51v-13.44Zm12.766 6.7a6.41 6.41 0 0 1 4.877-6.244v12.528c-2.775-.714-4.877-3.27-4.877-6.284m12.945 0c-.04 3.013-2.102 5.57-4.877 6.284V23.319c2.795.713 4.896 3.23 4.877 6.224"></path>
+          </svg>
           <span class="tab-label">场地情况</span>
         </button>
         <button class="tab-item" :class="{ active: currentPage === 'settings' }" @click="switchPage('settings')">
-          <img :src="iconSettings" alt="设置" class="tab-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-settings-icon lucide-settings tab-icon">
+            <path d="M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
           <span class="tab-label">设置</span>
         </button>
       </nav>
@@ -453,9 +464,6 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from './supabase'
-import iconShare from './assets/share.svg?url'
-import iconCourt from './assets/court.svg?url'
-import iconSettings from './assets/settings.svg?url'
 
 // 动态加载html2canvas（仅CDN方式）
 async function loadHtml2Canvas() {
