@@ -14,7 +14,7 @@
           <header class="page-header">
             <div class="page-header-content">
               <h1>{{ venues[0].name }}</h1>
-              <button class="share-btn-fixed" @click="shareSchedule">📤</button>
+              <button class="share-btn-fixed" @click="shareSchedule"><img src="/icons/share.svg" alt="分享" class="icon-share"></button>
             </div>
           </header>
 
@@ -224,11 +224,11 @@
       <!-- 底栏导航 -->
       <nav class="tab-bar">
         <button class="tab-item" :class="{ active: currentPage === 'venue' }" @click="switchPage('venue')">
-          <span class="tab-icon">⚽</span>
+          <img src="/icons/court.svg" alt="场地情况" class="tab-icon">
           <span class="tab-label">场地情况</span>
         </button>
         <button class="tab-item" :class="{ active: currentPage === 'settings' }" @click="switchPage('settings')">
-          <span class="tab-icon">⚙️</span>
+          <img src="/icons/settings.svg" alt="设置" class="tab-icon">
           <span class="tab-label">设置</span>
         </button>
       </nav>
@@ -1350,6 +1350,8 @@ function subscribeToBookings() {
   --danger: #b91c1c;
   --border: #e2e8f0;
   --border-light: #edf2f7;
+  --icon-filter: brightness(0) saturate(100%) invert(17%) sepia(14%) saturate(1147%) hue-rotate(173deg) brightness(93%) contrast(87%);
+  --icon-filter-active: brightness(0) saturate(100%) invert(27%) sepia(98%) saturate(1268%) hue-rotate(197deg) brightness(93%) contrast(85%);
 }
 
 /* ============ 黑色系（深蓝灰-柔和版） ============ */
@@ -1369,6 +1371,8 @@ function subscribeToBookings() {
   --danger: #dc2626;
   --border: #475569;
   --border-light: #334155;
+  --icon-filter: brightness(0) saturate(100%) invert(82%) sepia(4%) saturate(2497%) hue-rotate(177deg) brightness(102%) contrast(86%);
+  --icon-filter-active: brightness(0) saturate(100%) invert(47%) sepia(95%) saturate(2340%) hue-rotate(207deg) brightness(98%) contrast(91%);
 }
 
 .app {
@@ -1496,7 +1500,13 @@ button:active {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 20px;
+  padding: 0;
+}
+
+.icon-share {
+  width: 24px;
+  height: 24px;
+  filter: var(--icon-filter);
 }
 
 /* ============ 场地页面 ============ */
@@ -1900,9 +1910,11 @@ button:active {
 }
 
 .tab-icon {
-  font-size: 26px;
+  width: 26px;
+  height: 26px;
   margin-bottom: 4px;
   opacity: 0.5;
+  filter: var(--icon-filter);
 }
 
 .tab-label {
@@ -1914,7 +1926,14 @@ button:active {
 .tab-item.active .tab-icon,
 .tab-item.active .tab-label {
   opacity: 1;
+}
+
+.tab-item.active .tab-label {
   color: var(--accent);
+}
+
+.tab-item.active .tab-icon {
+  filter: var(--icon-filter-active);
 }
 
 /* ============ 弹窗样式 ============ */
