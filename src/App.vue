@@ -1,5 +1,5 @@
 <template>
-  <div class="app" :style="appStyle">
+  <div class="app" :class="currentTheme">
     <!-- 加载界面 -->
     <div v-if="isLoading" class="loading-screen" :style="loadingBgStyle">
       <div class="loading-spinner"></div>
@@ -7,88 +7,233 @@
     </div>
 
     <!-- 主内容 -->
-    <div v-else class="main-content-wrapper">
-    <button class="settings-btn" @click="showSettings = true">
-      <img src="/icons/settings.svg" alt="设置" class="icon-img">
-    </button>
-    <button class="share-btn" @click="shareSchedule">
-      <img src="/icons/share.svg" alt="分享" class="icon-img">
-    </button>
-    
-    <header class="header">
-      <h1>场地预约情况</h1>
-    </header>
+    <div v-else class="main-container">
+      <div class="page-content">
+        <!-- 场地情况页面 -->
+        <div id="venue-page" class="venue-page" :class="{ active: currentPage === 'venue' }">
+          <header class="page-header">
+            <button class="share-btn-fixed" @click="shareSchedule">📤</button>
+            <h1>场地预约情况</h1>
+          </header>
 
-    <main class="main-content">
-      <!-- 场地名称显示 -->
-      <div class="venue-title">
-        <h2>{{ venues[0].name }}</h2>
-      </div>
+          <main class="main-content">
+            <!-- 场地名称显示 -->
+            <div class="venue-title">
+              <h2>{{ venues[0].name }}</h2>
+            </div>
 
-      <!-- 日期导航 -->
-      <div class="date-nav">
-        <div class="dates-scroll">
-          <button
-            v-for="(date, index) in dateList"
-            :key="index"
-            :class="['date-btn', { active: selectedDate === date.fullDate }]"
-            @click="selectedDate = date.fullDate"
-          >
-            <span class="date-day">{{ date.day }}</span>
-            <span class="date-week">{{ date.week }}</span>
-            <span :class="['date-status', hasDateBooking(date.fullDate) ? 'has-booking' : 'no-booking']">
-              {{ hasDateBooking(date.fullDate) ? '有' : '无' }}
-            </span>
-            <!-- 天气显示 - 和风天气 -->
-            <span v-if="getWeatherForDate(date.fullDate)" class="weather-info">
-              <i :class="['qi-' + getWeatherForDate(date.fullDate).iconCode, 'weather-icon']"></i>
-              <span class="weather-desc">
-                {{ getWeatherForDate(date.fullDate).desc }}
-              </span>
-              <span class="weather-temp">
-                {{ getWeatherForDate(date.fullDate).minTemp }}°~{{ getWeatherForDate(date.fullDate).maxTemp }}°
-              </span>
-            </span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 时间网格 -->
-      <div class="time-grid">
-        <div
-          v-for="hour in timeSlots"
-          :key="hour"
-          class="time-slot-wrapper"
-        >
-          <!-- 备注显示 -->
-          <div v-if="getRemark(hour)" class="remark-display">
-            {{ getRemark(hour) }}
-          </div>
-
-          <!-- 时段块 -->
-          <div
-            :class="['time-slot', getSlotClass(hour)]"
-            @click="handleSlotClick(hour)"
-            @touchstart="startPress(hour)"
-            @touchend="cancelPress"
-            @touchcancel="cancelPress"
-          >
-            <div class="time-slot-left">
-              <span class="time-label">{{ hour }}:00 - {{ hour + 1 }}:00</span>
-              <!-- 天气显示 -->
-              <div v-if="getHourlyWeather(selectedDate, hour)" class="time-slot-weather">
-                <i :class="['qi-' + getHourlyWeather(selectedDate, hour).iconCode, 'slot-weather-icon']"></i>
-                <span class="slot-weather-temp">{{ getHourlyWeather(selectedDate, hour).temp }}°</span>
-                <span v-if="getHourlyWeather(selectedDate, hour).pop > 15" class="slot-weather-pop">
-                  💧{{ getHourlyWeather(selectedDate, hour).pop }}%
-                </span>
+            <!-- 日期导航 -->
+            <div class="date-nav">
+              <div class="dates-scroll">
+                <button
+                  v-for="(date, index) in dateList"
+                  :key="index"
+                  :class="['date-btn', { active: selectedDate === date.fullDate }]"
+                  @click="selectedDate = date.fullDate"
+                >
+                  <span class="date-day">{{ date.day }}</span>
+                  <span class="date-week">{{ date.week }}</span>
+                  <span :class="['date-status', hasDateBooking(date.fullDate) ? 'has-booking' : 'no-booking']">
+                    {{ hasDateBooking(date.fullDate) ? '有' : '无' }}
+                  </span>
+                  <!-- 天气显示 - 和风天气 -->
+                  <span v-if="getWeatherForDate(date.fullDate)" class="weather-info">
+                    <i :class="['qi-' + getWeatherForDate(date.fullDate).iconCode, 'weather-icon']"></i>
+                    <span class="weather-desc">
+                      {{ getWeatherForDate(date.fullDate).desc }}
+                    </span>
+                    <span class="weather-temp">
+                      {{ getWeatherForDate(date.fullDate).minTemp }}°~{{ getWeatherForDate(date.fullDate).maxTemp }}°
+                    </span>
+                  </span>
+                </button>
               </div>
             </div>
-            <span class="time-status">{{ getSlotStatus(hour) }}</span>
+
+            <!-- 时间网格 -->
+            <div class="time-grid">
+              <div
+                v-for="hour in timeSlots"
+                :key="hour"
+                class="time-slot-wrapper"
+              >
+                <!-- 备注显示 -->
+                <div v-if="getRemark(hour)" class="remark-display">
+                  {{ getRemark(hour) }}
+                </div>
+
+                <!-- 时段块 -->
+                <div
+                  :class="['time-slot', getSlotClass(hour)]"
+                  @click="handleSlotClick(hour)"
+                  @touchstart="startPress(hour)"
+                  @touchend="cancelPress"
+                  @touchcancel="cancelPress"
+                >
+                  <div class="time-slot-left">
+                    <span class="time-label">{{ hour }}:00 - {{ hour + 1 }}:00</span>
+                    <!-- 天气显示 -->
+                    <div v-if="getHourlyWeather(selectedDate, hour)" class="time-slot-weather">
+                      <i :class="['qi-' + getHourlyWeather(selectedDate, hour).iconCode, 'slot-weather-icon']"></i>
+                      <span class="slot-weather-temp">{{ getHourlyWeather(selectedDate, hour).temp }}°</span>
+                      <span v-if="getHourlyWeather(selectedDate, hour).pop > 15" class="slot-weather-pop">
+                        💧{{ getHourlyWeather(selectedDate, hour).pop }}%
+                      </span>
+                    </div>
+                  </div>
+                  <span class="time-status">{{ getSlotStatus(hour) }}</span>
+                </div>
+              </div>
+            </div>
+          </main>
+        </div>
+
+        <!-- 设置页面 -->
+        <div id="settings-page" class="settings-page" :class="{ active: currentPage === 'settings' }">
+          <header class="settings-header">
+            <h2>设置</h2>
+          </header>
+
+          <div class="settings-body">
+            <!-- 第一组：主题配色 -->
+            <div class="settings-section">
+              <div class="section-title">主题配色</div>
+              <div class="theme-grid">
+                <div class="theme-item" :class="{ active: currentTheme === 'theme-light' }" @click="selectTheme('theme-light')" style="background: #2b6cb0;">
+                  <div class="theme-check" v-if="currentTheme === 'theme-light'">✓</div>
+                  <span class="theme-name">浅灰蓝-低调版</span>
+                </div>
+                <div class="theme-item" :class="{ active: currentTheme === 'theme-dark' }" @click="selectTheme('theme-dark')" style="background: #3b82f6;">
+                  <div class="theme-check" v-if="currentTheme === 'theme-dark'">✓</div>
+                  <span class="theme-name">深蓝灰-柔和版</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第二组：外观设置 -->
+            <div class="settings-section">
+              <div class="section-title">外观设置</div>
+              <div class="section-content">
+                <div class="settings-item">
+                  <div class="settings-text">
+                    <div class="settings-item-title">更换背景</div>
+                    <div class="settings-item-desc">选择主题配色</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第三组：反馈与帮助 -->
+            <div class="settings-section">
+              <div class="section-title">反馈与帮助</div>
+              <div class="section-content">
+                <div class="settings-item" @click="showFeedbackModal = true">
+                  <div class="settings-text">
+                    <div class="settings-item-title">问题反馈</div>
+                    <div class="settings-item-desc">报告Bug或遇到的问题</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+
+                <div class="settings-item" @click="showSuggestionModal = true">
+                  <div class="settings-text">
+                    <div class="settings-item-title">功能建议</div>
+                    <div class="settings-item-desc">提出新功能或改进建议</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+
+                <div class="settings-item" @click="showHelpModal = true">
+                  <div class="settings-text">
+                    <div class="settings-item-title">使用帮助</div>
+                    <div class="settings-item-desc">查看使用说明和常见问题</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第四组：缓存管理 -->
+            <div class="settings-section">
+              <div class="section-title">缓存管理</div>
+              <div class="section-content">
+                <div class="settings-item" @click="clearWeatherCache">
+                  <div class="settings-text">
+                    <div class="settings-item-title">清除天气缓存</div>
+                    <div class="settings-item-desc">清除已缓存的天气数据</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+
+                <div class="settings-item" @click="clearAllCache">
+                  <div class="settings-text">
+                    <div class="settings-item-title">清除所有本地数据</div>
+                    <div class="settings-item-desc">清除所有缓存和本地存储</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第五组：项目信息 -->
+            <div class="settings-section">
+              <div class="section-title">项目信息</div>
+              <div class="section-content">
+                <div class="settings-item" @click="showProjectInfo = true">
+                  <div class="settings-text">
+                    <div class="settings-item-title">项目信息</div>
+                    <div class="settings-item-desc">版本、更新日志等</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+
+                <div class="settings-item" @click="showDeveloperInfo = true">
+                  <div class="settings-text">
+                    <div class="settings-item-title">开发者信息</div>
+                    <div class="settings-item-desc">作者、仓库、协议等</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第六组：安全与隐私 -->
+            <div class="settings-section">
+              <div class="section-title">安全与隐私</div>
+              <div class="section-content">
+                <div class="settings-item" @click="clearBrowsingHistory">
+                  <div class="settings-text">
+                    <div class="settings-item-title">清除浏览记录</div>
+                    <div class="settings-item-desc">清除本地浏览历史</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+
+                <div class="settings-item" @click="showLiabilityModal = true">
+                  <div class="settings-text">
+                    <div class="settings-item-title">责任声明</div>
+                    <div class="settings-item-desc">使用条款、免责声明等</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </main>
+
+      <!-- 底栏导航 -->
+      <nav class="tab-bar">
+        <button class="tab-item" :class="{ active: currentPage === 'venue' }" @click="switchPage('venue')">
+          <span class="tab-icon">⚽</span>
+          <span class="tab-label">场地情况</span>
+        </button>
+        <button class="tab-item" :class="{ active: currentPage === 'settings' }" @click="switchPage('settings')">
+          <span class="tab-icon">⚙️</span>
+          <span class="tab-label">设置</span>
+        </button>
+      </nav>
     </div>
 
     <!-- 密码确认弹窗 -->
@@ -135,210 +280,6 @@
         <div class="modal-buttons">
           <button class="btn-cancel" @click="showRemarkModal = false">取消</button>
           <button class="btn-confirm" @click="saveRemark">保存</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 设置页面 - 极简黑风格，占满全屏 -->
-    <div v-if="showSettings" class="settings-fullpage">
-      <!-- 头部 -->
-      <div class="settings-header">
-        <button class="settings-back" @click="showSettings = false">
-          <span class="back-arrow">←</span>
-        </button>
-        <h2 class="settings-header-title">设置</h2>
-        <div class="settings-header-placeholder"></div>
-      </div>
-
-      <!-- 设置内容 -->
-      <div class="settings-body">
-        <!-- 第一组：外观设置 -->
-        <div class="settings-section">
-          <div class="section-title">外观设置</div>
-          <div class="section-content">
-            <!-- 背景设置 -->
-            <div class="settings-group">
-              <div class="settings-item" @click="showBgSettings = true">
-                <div class="settings-item-left">
-                  <div class="settings-text">
-                    <div class="settings-item-title">更换背景</div>
-                    <div class="settings-item-desc">选择图片背景或纯色背景</div>
-                  </div>
-                </div>
-                <span class="settings-arrow">›</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 第二组：反馈与帮助 -->
-        <div class="settings-section">
-          <div class="section-title">反馈与帮助</div>
-          <div class="section-content">
-            <!-- 问题反馈 -->
-            <div class="settings-item" @click="showFeedbackModal = true">
-              <div class="settings-item-left">
-                <div class="settings-text">
-                  <div class="settings-item-title">问题反馈</div>
-                  <div class="settings-item-desc">报告Bug或遇到的问题</div>
-                </div>
-              </div>
-              <span class="settings-arrow">›</span>
-            </div>
-
-            <!-- 功能建议 -->
-            <div class="settings-item" @click="showSuggestionModal = true">
-              <div class="settings-item-left">
-                <div class="settings-text">
-                  <div class="settings-item-title">功能建议</div>
-                  <div class="settings-item-desc">提出新功能或改进建议</div>
-                </div>
-              </div>
-              <span class="settings-arrow">›</span>
-            </div>
-
-            <!-- 使用帮助 -->
-            <div class="settings-item" @click="showHelpModal = true">
-              <div class="settings-item-left">
-                <div class="settings-text">
-                  <div class="settings-item-title">使用帮助</div>
-                  <div class="settings-item-desc">查看使用说明和常见问题</div>
-                </div>
-              </div>
-              <span class="settings-arrow">›</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 第三组：缓存管理 -->
-        <div class="settings-section">
-          <div class="section-title">缓存管理</div>
-          <div class="section-content">
-            <!-- 清除天气缓存 -->
-            <div class="settings-item" @click="clearWeatherCache">
-              <div class="settings-item-left">
-                <div class="settings-text">
-                  <div class="settings-item-title">清除天气缓存</div>
-                  <div class="settings-item-desc">清除已缓存的天气数据</div>
-                </div>
-              </div>
-              <span class="settings-arrow">›</span>
-            </div>
-
-            <!-- 清除所有本地数据 -->
-            <div class="settings-item" @click="clearAllCache">
-              <div class="settings-item-left">
-                <div class="settings-text">
-                  <div class="settings-item-title">清除所有本地数据</div>
-                  <div class="settings-item-desc">清除所有缓存和本地存储</div>
-                </div>
-              </div>
-              <span class="settings-arrow">›</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 第四组：项目信息 -->
-        <div class="settings-section">
-          <div class="section-title">项目信息</div>
-          <div class="section-content">
-            <!-- 关于项目 -->
-            <div class="settings-group">
-              <div class="settings-item" @click="showProjectInfo = true">
-                <div class="settings-item-left">
-                  <div class="settings-text">
-                    <div class="settings-item-title">项目信息</div>
-                    <div class="settings-item-desc">版本、更新日志等</div>
-                  </div>
-                </div>
-                <span class="settings-arrow">›</span>
-              </div>
-            </div>
-
-            <!-- 开发者 -->
-            <div class="settings-group" style="margin-top: 8px;">
-              <div class="settings-item" @click="showDeveloperInfo = true">
-                <div class="settings-item-left">
-                  <div class="settings-text">
-                    <div class="settings-item-title">开发者信息</div>
-                    <div class="settings-item-desc">作者、仓库、协议等</div>
-                  </div>
-                </div>
-                <span class="settings-arrow">›</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 第五组：安全与隐私 -->
-        <div class="settings-section">
-          <div class="section-title">安全与隐私</div>
-          <div class="section-content">
-            <!-- 隐私设置 -->
-            <div class="settings-group">
-              <div class="settings-item" @click="clearBrowsingHistory">
-                <div class="settings-item-left">
-                  <div class="settings-text">
-                    <div class="settings-item-title">清除浏览记录</div>
-                    <div class="settings-item-desc">清除本地浏览历史</div>
-                  </div>
-                </div>
-                <span class="settings-arrow">›</span>
-              </div>
-            </div>
-
-            <!-- 责任声明 -->
-            <div class="settings-group" style="margin-top: 8px;">
-              <div class="settings-item" @click="showLiabilityModal = true">
-                <div class="settings-item-left">
-                  <div class="settings-text">
-                    <div class="settings-item-title">责任声明</div>
-                    <div class="settings-item-desc">使用条款、免责声明等</div>
-                  </div>
-                </div>
-                <span class="settings-arrow">›</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- 背景设置弹窗 -->
-    <div v-if="showBgSettings" class="modal-overlay" @click="showBgSettings = false">
-      <div class="modal-content modal-content-large" @click.stop>
-        <div class="modal-header">
-          <h3>更换背景</h3>
-          <button class="modal-close" @click="showBgSettings = false">✕</button>
-        </div>
-        <div class="modal-body">
-          <div class="section-label">图片背景</div>
-          <div class="bg-preview-grid">
-            <div 
-              v-for="(img, index) in bgImages" 
-              :key="index"
-              class="bg-preview-item"
-              :class="{ active: currentBgType === 'image' && currentBgImage === img }"
-              :style="{ backgroundImage: `url(/bg/${img})` }"
-              @click="selectImageBg(img)"
-            ></div>
-          </div>
-          
-          <div class="section-label" style="margin-top: 20px;">纯色背景</div>
-          <div class="color-preview-grid">
-            <div 
-              v-for="(color, index) in solidBgColors" 
-              :key="index"
-              class="color-preview-item"
-              :class="{ active: currentBgType === 'solid' && currentSolidBg === color.color }"
-              :style="{ background: color.color }"
-              :title="color.name"
-              @click="selectSolidBg(color.color)"
-            ></div>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <button class="modal-btn modal-btn-primary" @click="showBgSettings = false">确定</button>
         </div>
       </div>
     </div>
@@ -492,7 +433,7 @@
           </div>
           <div class="help-section">
             <h4>设置功能</h4>
-            <p>1. <strong>更换背景</strong>：支持纯色背景和图片背景切换</p>
+            <p>1. <strong>主题配色</strong>：支持浅灰蓝-低调版和深蓝灰-柔和版两种主题</p>
             <p>2. <strong>分享功能</strong>：可将预约情况导出为图片分享</p>
             <p>3. <strong>清除缓存</strong>：清除天气缓存或所有本地数据</p>
           </div>
@@ -551,82 +492,21 @@ const bookings = ref([])
 // 页面加载状态
 const isLoading = ref(true)
 
-// 背景图片
+// 背景图片（仅用于加载页面）
 const bgImages = ['bg1.jpg', 'bg2.jpg', 'bg3.jpg', 'bg4.jpg', 'bg5.jpg', 'bg6.jpg', 'bg7.jpg']
-const currentBgImage = ref('')
+const loadingBgImage = ref('')
 
-// 纯色背景选项
-const solidBgColors = [
-  { color: '#0a0a0a', name: '极深黑' },
-  { color: '#0d0d0d', name: '深邃黑' },
-  { color: '#111111', name: '墨黑' },
-  { color: '#141414', name: '暗黑' },
-  { color: '#171717', name: '深黑' },
-  { color: '#1a1a1a', name: '纯黑' },
-  { color: '#1d1d1d', name: '炭黑' },
-  { color: '#202020', name: '灰黑' },
-  { color: '#1a1d23', name: '深空灰' },
-  { color: '#1d1d1f', name: '苹果灰' },
-  { color: '#1e1e1e', name: '代码灰' },
-  { color: '#212121', name: '哑光灰' },
-  { color: '#242424', name: '磨砂灰' },
-  { color: '#252525', name: '石墨灰' },
-  { color: '#282828', name: '石板灰' },
-  { color: '#2d2d2d', name: '金属灰' },
-  { color: '#1a1a2e', name: '深靛蓝' },
-  { color: '#16213e', name: '深海蓝' },
-  { color: '#1a2332', name: '午夜蓝' },
-  { color: '#1d1d2e', name: '暗紫蓝' },
-  { color: '#1e2030', name: '深紫灰' },
-  { color: '#152238', name: '藏青蓝' },
-  { color: '#1c1c28', name: '深紫' },
-  { color: '#232d3f', name: '靛蓝灰' },
-  { color: '#2d1b69', name: '深紫' },
-  { color: '#1e3a5f', name: '皇家蓝' },
-  { color: '#2a1f3d', name: '暗紫红' },
-  { color: '#1f3040', name: '深蓝' },
-  { color: '#1d352c', name: '深绿' },
-  { color: '#3d291d', name: '深棕' },
-  { color: '#4a1942', name: '酒红' },
-  { color: '#1a4a5e', name: '孔雀蓝' },
-  { color: '#3d2a4f', name: '紫罗兰' },
-  { color: '#1f4d40', name: '森林绿' },
-  { color: '#4a3520', name: '琥珀棕' },
-  { color: '#2d4a5e', name: '钢蓝' },
-  { color: '#5e2d4a', name: '洋红' },
-  { color: '#4a5e2d', name: '橄榄绿' }
-]
+// 当前页面和主题
+const currentPage = ref('venue')
+const currentTheme = ref('theme-light')
 
 // 设置相关
-const showSettings = ref(false)
-const showBgSettings = ref(false)
 const showProjectInfo = ref(false)
 const showDeveloperInfo = ref(false)
 const showLiabilityModal = ref(false)
 const showFeedbackModal = ref(false)
 const showSuggestionModal = ref(false)
 const showHelpModal = ref(false)
-
-// 背景类型和当前选择
-const currentBgType = ref('solid') // 'solid' 或 'image'
-const currentSolidBg = ref('#232d3f') // 默认靛蓝灰
-const loadingBgImage = ref('') // 加载页随机背景
-
-// 计算应用样式
-const appStyle = computed(() => {
-  if (currentBgType.value === 'image') {
-    return {
-      backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url(/bg/${currentBgImage.value})`,
-      backgroundSize: 'cover',
-      backgroundPosition: 'center',
-      backgroundRepeat: 'no-repeat'
-    }
-  } else {
-    return {
-      background: currentSolidBg.value
-    }
-  }
-})
 
 // 加载页背景样式
 const loadingBgStyle = computed(() => {
@@ -638,23 +518,34 @@ const loadingBgStyle = computed(() => {
   }
 })
 
+// 切换页面
+function switchPage(page) {
+  currentPage.value = page
+}
+
+// 选择主题
+function selectTheme(theme) {
+  currentTheme.value = theme
+  localStorage.setItem('theme', theme)
+}
+
 // 分享预约情况
 async function shareSchedule() {
   try {
     // 动态加载html2canvas
     const h2c = await loadHtml2Canvas()
     
-    // 先隐藏固定按钮，防止截图时包含
-    const settingsBtn = document.querySelector('.settings-btn')
-    const shareBtn = document.querySelector('.share-btn')
-    if (settingsBtn) settingsBtn.style.display = 'none'
+    // 先隐藏底栏，防止截图时包含
+    const tabBar = document.querySelector('.tab-bar')
+    const shareBtn = document.querySelector('.share-btn-fixed')
+    if (tabBar) tabBar.style.display = 'none'
     if (shareBtn) shareBtn.style.display = 'none'
 
     // 等待DOM更新
     await nextTick()
 
     // 获取主内容区域
-    const element = document.querySelector('.main-content-wrapper')
+    const element = document.querySelector('.venue-page.active')
     if (!element) {
       alert('无法获取页面内容')
       return
@@ -664,14 +555,14 @@ async function shareSchedule() {
     const canvas = await h2c(element, {
       scale: 2,
       useCORS: true,
-      backgroundColor: currentBgType.value === 'solid' ? currentSolidBg.value : '#0a0a0a',
+      backgroundColor: currentTheme.value === 'theme-light' ? '#f7fafc' : '#0f172a',
       allowTaint: true,
       logging: false,
       letterRendering: true
     })
 
-    // 恢复按钮显示
-    if (settingsBtn) settingsBtn.style.display = 'flex'
+    // 恢复显示
+    if (tabBar) tabBar.style.display = 'flex'
     if (shareBtn) shareBtn.style.display = 'flex'
 
     // 创建下载链接
@@ -762,28 +653,12 @@ async function shareSchedule() {
     console.error('导出失败:', error)
     alert('导出失败，请重试')
     
-    // 确保按钮恢复显示
-    const settingsBtn = document.querySelector('.settings-btn')
-    const shareBtn = document.querySelector('.share-btn')
-    if (settingsBtn) settingsBtn.style.display = 'flex'
+    // 确保恢复显示
+    const tabBar = document.querySelector('.tab-bar')
+    const shareBtn = document.querySelector('.share-btn-fixed')
+    if (tabBar) tabBar.style.display = 'flex'
     if (shareBtn) shareBtn.style.display = 'flex'
   }
-}
-
-// 选择纯色背景
-function selectSolidBg(color) {
-  currentSolidBg.value = color
-  currentBgType.value = 'solid'
-  localStorage.setItem('bgType', 'solid')
-  localStorage.setItem('solidBg', color)
-}
-
-// 选择图片背景
-function selectImageBg(img) {
-  currentBgImage.value = img
-  currentBgType.value = 'image'
-  localStorage.setItem('bgType', 'image')
-  localStorage.setItem('imageBg', img)
 }
 
 // 清除天气缓存
@@ -824,11 +699,6 @@ function submitSuggestion() {
   showSuggestionModal.value = false
 }
 
-// 刷新页面
-function refreshPage() {
-  location.reload()
-}
-
 // 场地实际状态数据（从time_slots表获取）
 const venueSlots = ref([])
 
@@ -863,8 +733,6 @@ const pendingAction = ref(null) // 待执行的操作：{ type: 'book'|'cancel',
 const showConfirmModal = ref(false)
 const confirmMessage = ref('')
 const confirmHour = ref(null)
-
-
 
 // 获取默认城市天气数据 - 使用和风天气API
 async function fetchWeatherData() {
@@ -1000,21 +868,10 @@ onMounted(() => {
   const randomIndex = Math.floor(Math.random() * bgImages.length)
   loadingBgImage.value = bgImages[randomIndex]
   
-  // 从localStorage读取背景设置
-  const savedBgType = localStorage.getItem('bgType')
-  const savedSolidBg = localStorage.getItem('solidBg')
-  const savedImageBg = localStorage.getItem('imageBg')
-  
-  if (savedBgType) {
-    currentBgType.value = savedBgType
-  }
-  if (savedSolidBg) {
-    currentSolidBg.value = savedSolidBg
-  }
-  if (savedImageBg) {
-    currentBgImage.value = savedImageBg
-  } else {
-    currentBgImage.value = bgImages[0]
+  // 从localStorage读取主题设置
+  const savedTheme = localStorage.getItem('theme')
+  if (savedTheme) {
+    currentTheme.value = savedTheme
   }
 
   const today = new Date()
@@ -1129,24 +986,6 @@ function hasDateBooking(date) {
   const venueBookings = getBookingsForVenueAndDate(currentVenue.value, date)
   // 检查是否有status为booked的记录
   return venueBookings.some(b => b.status === 'booked')
-}
-
-// 检查某个场地在所有显示的日期中是否有未过期的预约 - 使用status字段判断
-function hasBooking(venueId) {
-  const now = new Date()
-  for (const dateItem of dateList.value) {
-    const venueBookings = bookings.value.filter(b => b.venue === venueId && b.date === dateItem.fullDate)
-    for (const booking of venueBookings) {
-      // 检查status是否为booked
-      if (booking.status === 'booked') {
-        const slotDate = new Date(booking.date + ' ' + booking.time_slot + ':00:00')
-        if (slotDate >= now) {
-          return true
-        }
-      }
-    }
-  }
-  return false
 }
 
 // 处理时段点击
@@ -1493,6 +1332,56 @@ function subscribeToBookings() {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ============ 白色系（浅灰蓝-低调版） ============ */
+.theme-light {
+  --bg-primary: #f7fafc;
+  --bg-secondary: #ffffff;
+  --bg-card: #edf2f7;
+  --bg-hover: #e2e8f0;
+  --text-primary: #2d3748;
+  --text-secondary: #718096;
+  --accent: #2b6cb0;
+  --accent-hover: #2c5282;
+  --accent-light: #e6f0fa;
+  --success: #276749;
+  --success-light: #e8f5e9;
+  --warning: #b45309;
+  --danger: #b91c1c;
+  --border: #e2e8f0;
+  --border-light: #edf2f7;
+}
+
+/* ============ 黑色系（深蓝灰-柔和版） ============ */
+.theme-dark {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-card: #334155;
+  --bg-hover: #475569;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-light: #1e3a5f;
+  --success: #059669;
+  --success-light: #064e3b;
+  --warning: #d97706;
+  --danger: #dc2626;
+  --border: #475569;
+  --border-light: #334155;
+}
+
+.app {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  overflow: hidden;
+  height: 100vh;
 }
 
 /* 去除所有按钮的点击高亮效果 */
@@ -1512,84 +1401,23 @@ button:active {
   outline: none !important;
 }
 
-.app {
-  min-height: 100vh;
-  background-size: cover;
-  background-position: center center;
-  background-repeat: no-repeat;
-  color: #fff;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-}
-
-/* 设置按钮 */
-.settings-btn {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  width: 44px;
-  height: 44px;
-  background: #333333;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
+/* ============ 页面容器 ============ */
+.main-container {
+  flex: 1;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: #fff;
-  transition: all 0.3s;
-  z-index: 100;
+  flex-direction: column;
+  overflow: hidden;
+  padding-bottom: 70px;
+  position: relative;
 }
 
-.settings-btn:hover {
-  background: #444444;
-  transform: rotate(45deg);
+.page-content {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
-.settings-btn:hover .icon-img {
-  transform: rotate(45deg);
-}
-
-/* 分享按钮 */
-.share-btn {
-  position: fixed;
-  top: 74px;
-  right: 20px;
-  width: 44px;
-  height: 44px;
-  background: #333333;
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: #fff;
-  transition: all 0.3s;
-  z-index: 100;
-}
-
-.share-btn:hover {
-  background: #444444;
-  transform: scale(1.1);
-}
-
-/* SVG图标样式 */
-.icon-img {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  filter: invert(1);
-  transition: all 0.3s;
-}
-
-/* 主内容容器 */
-.main-content-wrapper {
-  min-height: 100vh;
-}
-
-/* 加载界面样式 */
+/* ============ 加载界面样式 ============ */
 .loading-screen {
   display: flex;
   flex-direction: column;
@@ -1619,15 +1447,61 @@ button:active {
   color: rgba(255, 255, 255, 0.7);
 }
 
-.header {
+/* ============ 页面头部 ============ */
+.page-header {
   padding: 20px;
   text-align: center;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border);
+  position: relative;
+  background: var(--bg-primary);
+  z-index: 10;
 }
 
-.header h1 {
-  font-size: 28px;
-  color: #fff;
+.page-header h1 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.settings-header {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-primary);
+}
+
+.settings-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+/* ============ 分享按钮 ============ */
+.share-btn-fixed {
+  position: absolute;
+  top: 50%;
+  right: 70px;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  background: var(--bg-card);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+
+/* ============ 场地页面 ============ */
+.venue-page,
+.settings-page {
+  display: none;
+  min-height: 100%;
+}
+
+.venue-page.active,
+.settings-page.active {
+  display: block;
 }
 
 .main-content {
@@ -1638,146 +1512,85 @@ button:active {
 
 .venue-title {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .venue-title h2 {
-  font-size: 22px;
-  color: #fff;
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--text-secondary);
 }
 
-.venue-tabs {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-
-.tab {
-  padding: 15px 20px;
-  font-size: 16px;
-  border: 2px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.8);
-  border-radius: 10px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.tab:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.tab:focus {
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.tab.active {
-  background: linear-gradient(135deg, #00d4ff, #7c3aed);
-  border-color: transparent;
-  color: #fff;
-  font-weight: bold;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.venue-status {
-  font-size: 12px;
-  padding: 4px 10px;
-  border-radius: 12px;
-}
-
-.venue-status.has-booking {
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: #fff;
-}
-
-.venue-status.no-booking {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-  color: #fff;
-}
-
+/* ============ 日期导航 ============ */
 .date-nav {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .dates-scroll {
   display: flex;
   gap: 10px;
-  padding: 5px;
+  padding: 5px 0;
 }
 
 .date-btn {
   flex-shrink: 0;
-  padding: 6px 8px;
-  background: rgba(255, 255, 255, 0.05);
+  padding: 12px 14px;
+  background: var(--bg-secondary);
   border: 2px solid transparent;
-  border-radius: 10px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 70px;
-  min-height: 90px;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.date-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.date-btn:focus {
-  outline: none !important;
-  box-shadow: none !important;
+  min-width: 78px;
+  min-height: 100px;
 }
 
 .date-btn.active {
-  background: rgba(255, 255, 255, 0.12);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  outline: none !important;
-  box-shadow: none !important;
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
 }
 
 .date-day {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: bold;
-  color: #fff;
 }
 
 .date-week {
   font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   margin-top: 4px;
+}
+
+.date-btn.active .date-week {
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .date-status {
   font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 8px;
-  margin-top: 4px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  margin-top: 8px;
+  font-weight: 600;
+  background: var(--bg-card);
+  color: var(--text-secondary);
 }
 
 .date-status.has-booking {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--success);
   color: #fff;
 }
 
-.date-status.no-booking {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-  color: #fff;
+.date-btn.active .date-status.no-booking {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.9);
 }
 
-/* 天气显示样式 - 和风天气 */
+/* ============ 天气显示样式 - 和风天气 ============ */
 .weather-info {
   display: flex;
   flex-direction: column;
@@ -1785,29 +1598,32 @@ button:active {
   gap: 3px;
   margin-top: 6px;
   padding-top: 6px;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid var(--border-light);
 }
 
 .weather-icon {
   font-size: 24px;
   line-height: 1;
+}
+
+.theme-dark .weather-icon {
   color: #fff !important;
 }
 
 .weather-desc {
   font-size: 10px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-secondary);
   white-space: nowrap;
 }
 
 .weather-temp {
   font-size: 10px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   font-weight: 500;
 }
 
-/* 时段框内天气样式 */
+/* ============ 时段框内天气样式 ============ */
 .time-slot-left {
   display: flex;
   flex-direction: column;
@@ -1829,7 +1645,6 @@ button:active {
 .slot-weather-temp {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.95);
 }
 
 .slot-weather-pop {
@@ -1838,339 +1653,95 @@ button:active {
   font-weight: 500;
 }
 
+/* ============ 时间网格 ============ */
 .time-grid {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   margin-bottom: 20px;
 }
 
 .time-slot-wrapper {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .remark-display {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-secondary);
   padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--bg-card);
   border-radius: 6px;
   margin-left: 4px;
 }
 
 .time-slot {
-  padding: 20px;
-  border-radius: 12px;
+  padding: 18px 20px;
+  border-radius: 14px;
   cursor: pointer;
-  transition: all 0.3s ease;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border: 2px solid transparent;
-  outline: none !important;
-  box-shadow: none !important;
-}
-
-.time-slot:hover:not(.expired) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
 }
 
 .time-label {
-  font-size: 15px;
-  font-weight: 500;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .time-status {
-  font-size: 13px;
-  padding: 4px 12px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.2);
+  font-size: 14px;
+  padding: 6px 16px;
+  border-radius: 18px;
+  background: rgba(0, 0, 0, 0.06);
+  font-weight: 600;
 }
 
+/* ============ 时间槽配色 - 柔和版 ============ */
 .time-slot.available {
-  background: #1d4ed8;
+  background: var(--accent-light);
+  color: var(--accent);
+  border: 2px solid var(--accent);
 }
 
-.time-slot.available:hover {
-  background: #3b82f6;
+.time-slot.available .time-status {
+  background: var(--accent);
+  color: #fff;
 }
 
 .time-slot.unavailable {
-  background: #52525b;
-}
-
-.time-slot.unavailable:hover {
-  background: #62626b;
-}
-
-.time-slot.unbooked {
-  background: #52525b;
-}
-
-.time-slot.unbooked:hover {
-  background: #62626b;
-}
-
-.time-slot.booked {
-  background: #059669;
-}
-
-.time-slot.booked:hover {
-  background: #10b981;
-}
-
-.time-slot.expired {
-  background: #6b7280;
-  cursor: not-allowed;
+  background: var(--bg-card);
   opacity: 0.6;
 }
 
-.legend {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 20px;
-  padding: 20px;
-  background: rgba(0, 0, 0, 0.2);
-  border-radius: 10px;
-  margin-bottom: 20px;
+.time-slot.booked {
+  background: var(--success-light);
+  color: var(--success);
+  border: 2px solid var(--success);
 }
 
-.legend-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.legend-color {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
-}
-
-.legend-color.available {
-  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-}
-
-.legend-color.unavailable {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-}
-
-.legend-color.unbooked {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-}
-
-.legend-color.booked {
-  background: linear-gradient(135deg, #10b981, #059669);
-}
-
-.legend-color.expired {
-  background: linear-gradient(135deg, #6b7280, #4b5563);
-}
-
-.footer {
-  text-align: center;
-  padding: 20px;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 14px;
-}
-
-/* 弹窗样式 */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal {
-  background: #1a1a2e;
-  padding: 24px;
-  border-radius: 16px;
-  width: 90%;
-  max-width: 400px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.modal h3 {
-  margin-bottom: 8px;
-  font-size: 18px;
-}
-
-.modal-time {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.6);
-  margin-bottom: 16px;
-}
-
-.modal-message {
-  font-size: 16px;
-  color: #fff;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.modal textarea {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  font-size: 14px;
-  resize: none;
-  font-family: inherit;
-}
-
-.modal textarea:focus {
-  outline: none;
-  border-color: #00d4ff;
-}
-
-/* 密码输入框样式 */
-.password-input {
-  width: 100%;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
-  color: #fff;
-  font-size: 16px;
-  margin-top: 12px;
-}
-
-.password-input:focus {
-  outline: none;
-  border-color: #00d4ff;
-}
-
-.modal-buttons {
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.modal-buttons button {
-  flex: 1;
-  padding: 12px;
-  border-radius: 8px;
-  border: none;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.btn-cancel {
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.btn-cancel:hover {
-  background: rgba(255, 255, 255, 0.2);
-}
-
-.btn-confirm {
-  background: #3b82f6;
+.time-slot.booked .time-status {
+  background: var(--success);
   color: #fff;
 }
 
-.btn-confirm:hover {
-  opacity: 0.9;
+.time-slot.expired {
+  background: var(--bg-secondary);
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
-/* 设置弹窗样式 */
-/* 设置页面 - 白色风格，占满全屏 */
-.settings-fullpage {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #ffffff;
-  z-index: 300;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  background: #ffffff;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  flex-shrink: 0;
-}
-
-.settings-back {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.06);
-  border: none;
-  border-radius: 10px;
-  color: #333333;
-  cursor: pointer;
-  transition: all 0.3s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.settings-back:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.back-arrow {
-  font-size: 20px;
-}
-
-.settings-header-title {
-  font-size: 18px;
-  font-weight: 600;
-  color: #333333;
-}
-
-.settings-header-placeholder {
-  width: 40px;
-}
-
+/* ============ 设置页面 ============ */
 .settings-body {
-  flex: 1;
-  overflow-y: auto;
   padding: 20px;
-  -webkit-overflow-scrolling: touch;
-  background: #f8f9fa;
+  max-width: 600px;
+  margin: 0 auto;
 }
 
-.settings-body::-webkit-scrollbar {
-  width: 4px;
-}
-
-.settings-body::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.settings-body::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
-  border-radius: 2px;
-}
-
-/* 设置分组 */
 .settings-section {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 .settings-section:last-child {
@@ -2180,41 +1751,65 @@ button:active {
 .section-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   padding-left: 4px;
-  line-height: 1.4;
 }
 
 .section-content {
-  background: rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: var(--bg-secondary);
   border-radius: 16px;
-  padding: 8px;
+  padding: 4px;
   overflow: hidden;
+  border: 1px solid var(--border);
 }
 
-.settings-group {
-  padding: 0;
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  padding: 14px;
 }
 
-.settings-group + .settings-group {
-  margin-top: 0;
+.theme-item {
+  aspect-ratio: 1.5;
+  border-radius: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid transparent;
+  position: relative;
 }
 
-.group-label {
+.theme-item.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+.theme-check {
+  font-size: 28px;
+  color: #fff;
+  font-weight: bold;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.theme-name {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 12px;
-  font-weight: 600;
-  color: rgba(0, 0, 0, 0.35);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 8px;
-  padding-left: 8px;
+  font-weight: 700;
+  white-space: nowrap;
+  background: rgba(0,0,0,0.7);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 10px;
 }
 
-/* 设置项 */
 .settings-item {
   display: flex;
   align-items: center;
@@ -2224,121 +1819,261 @@ button:active {
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s;
   text-align: left;
   width: 100%;
-  color: #333333;
-  position: relative;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.settings-item:hover {
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.settings-item-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
-
-.settings-icon {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
 }
 
 .settings-text {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 4px;
   flex: 1;
 }
 
 .settings-item-title {
   font-size: 16px;
   font-weight: 500;
-  color: #333333;
   line-height: 1.4;
 }
 
 .settings-item-desc {
   font-size: 13px;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
 .settings-arrow {
-  font-size: 20px;
-  color: rgba(0, 0, 0, 0.3);
+  font-size: 22px;
+  color: var(--text-secondary);
   margin-left: 8px;
   font-weight: 300;
   flex-shrink: 0;
 }
 
-/* 背景预览网格 */
-.bg-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  padding: 8px;
+/* ============ 底栏导航 ============ */
+.tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-secondary);
+  border-top: 1px solid var(--border);
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  z-index: 100;
 }
 
-.bg-preview-item {
-  aspect-ratio: 9/16;
-  border-radius: 8px;
+.tab-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 0;
+  border: none;
+  background: transparent;
   cursor: pointer;
-  transition: all 0.3s;
-  border: 2px solid transparent;
-  background-size: cover;
-  background-position: center;
 }
 
-.bg-preview-item:hover {
-  transform: scale(1.02);
+.tab-icon {
+  font-size: 26px;
+  margin-bottom: 4px;
+  opacity: 0.5;
 }
 
-.bg-preview-item.active {
-  border-color: rgba(0, 0, 0, 0.6);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+.tab-label {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.5;
 }
 
-/* 颜色预览网格 */
-.color-preview-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  gap: 8px;
-  padding: 8px;
+.tab-item.active .tab-icon,
+.tab-item.active .tab-label {
+  opacity: 1;
+  color: var(--accent);
 }
 
-.color-preview-item {
-  aspect-ratio: 1;
-  border-radius: 6px;
+/* ============ 弹窗样式 ============ */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.modal {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: 24px;
+  max-width: 400px;
+  width: 100%;
+}
+
+.modal h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.modal-message {
+  font-size: 16px;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+}
+
+.password-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.modal-time {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.modal textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 16px;
+  margin-bottom: 20px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  resize: vertical;
+  font-family: inherit;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-cancel,
+.btn-confirm {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s;
-  border: 2px solid transparent;
 }
 
-.color-preview-item:hover {
-  transform: scale(1.1);
+.btn-cancel {
+  background: var(--bg-card);
+  color: var(--text-primary);
 }
 
-.color-preview-item.active {
-  border-color: rgba(0, 0, 0, 0.6);
-  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+.btn-confirm {
+  background: var(--accent);
+  color: #fff;
 }
 
-/* 信息卡片 */
+/* ============ 新弹窗样式 ============ */
+.modal-content {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  max-width: 400px;
+  width: 100%;
+  overflow: hidden;
+}
+
+.modal-content-large {
+  max-width: 500px;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.modal-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.modal-textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 16px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  resize: vertical;
+  min-height: 120px;
+  font-family: inherit;
+}
+
+.modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--border);
+}
+
+.modal-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modal-btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+.modal-btn-primary {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* ============ 信息卡片样式 ============ */
 .info-card {
-  background: rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: var(--bg-primary);
   border-radius: 12px;
   padding: 16px;
-  margin: 8px;
 }
 
 .info-item {
@@ -2354,18 +2089,17 @@ button:active {
 
 .info-label {
   font-size: 12px;
-  color: rgba(0, 0, 0, 0.4);
+  color: var(--text-secondary);
 }
 
 .info-value {
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.9);
   line-height: 1.5;
 }
 
 .info-link {
   font-size: 14px;
-  color: #1976d2;
+  color: var(--accent);
   text-decoration: none;
   word-break: break-all;
 }
@@ -2377,11 +2111,11 @@ button:active {
 .version-badge {
   display: inline-block;
   padding: 2px 10px;
-  background: rgba(0, 0, 0, 0.06);
+  background: var(--accent-light);
   border-radius: 12px;
   font-size: 12px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--accent);
 }
 
 .info-section {
@@ -2395,152 +2129,18 @@ button:active {
 .info-section-title {
   font-size: 13px;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.5);
+  color: var(--text-secondary);
   margin-bottom: 6px;
 }
 
 .info-section-content {
   font-size: 13px;
-  color: rgba(0, 0, 0, 0.7);
   line-height: 1.6;
 }
 
-/* 弹窗样式 */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 400;
-  padding: 20px;
-}
-
-.modal-content {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 16px;
-  width: 100%;
-  max-width: 400px;
-  max-height: 80vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-}
-
-.modal-content-large {
-  max-width: 480px;
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.modal-header h3 {
-  font-size: 17px;
-  font-weight: 600;
-  color: #333333;
-}
-
-.modal-close {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.06);
-  border: none;
-  border-radius: 8px;
-  color: rgba(0, 0, 0, 0.6);
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.modal-close:hover {
-  background: rgba(0, 0, 0, 0.1);
-  color: #333333;
-}
-
-.modal-body {
-  padding: 20px;
-  overflow-y: auto;
-  flex: 1;
-}
-
-.modal-textarea {
-  width: 100%;
-  min-height: 120px;
-  padding: 14px;
-  background: rgba(0, 0, 0, 0.02);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  color: #333333;
-  font-size: 15px;
-  font-family: inherit;
-  resize: vertical;
-  outline: none;
-}
-
-.modal-textarea:focus {
-  border-color: rgba(0, 0, 0, 0.2);
-  background: rgba(0, 0, 0, 0.04);
-}
-
-.modal-textarea::placeholder {
-  color: rgba(0, 0, 0, 0.3);
-}
-
-.modal-footer {
-  display: flex;
-  gap: 12px;
-  padding: 16px 20px 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.modal-btn {
-  flex: 1;
-  padding: 12px 20px;
-  border: none;
-  border-radius: 10px;
-  font-size: 15px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.3s;
-  -webkit-tap-highlight-color: transparent;
-}
-
-.modal-btn-secondary {
-  background: rgba(0, 0, 0, 0.06);
-  color: rgba(0, 0, 0, 0.8);
-}
-
-.modal-btn-secondary:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.modal-btn-primary {
-  background: #333333;
-  color: #ffffff;
-}
-
-.modal-btn-primary:hover {
-  background: #444444;
-}
-
-/* 帮助内容 */
+/* ============ 帮助内容样式 ============ */
 .help-content {
-  padding: 16px;
+  padding: 0;
 }
 
 .help-section {
@@ -2554,13 +2154,12 @@ button:active {
 .help-section h4 {
   font-size: 15px;
   font-weight: 600;
-  color: #333333;
   margin-bottom: 10px;
 }
 
 .help-section p {
   font-size: 14px;
-  color: rgba(0, 0, 0, 0.7);
+  color: var(--text-secondary);
   line-height: 1.7;
   margin-bottom: 8px;
 }
@@ -2570,7 +2169,7 @@ button:active {
 }
 
 .help-section strong {
-  color: rgba(0, 0, 0, 0.9);
+  color: var(--text-primary);
   font-weight: 500;
 }
 </style>
