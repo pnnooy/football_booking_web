@@ -99,31 +99,30 @@
           </header>
 
           <div class="settings-body">
-            <!-- 第一组：主题配色 -->
-            <div class="settings-section">
-              <div class="section-title">主题配色</div>
-              <div class="theme-grid">
-                <div class="theme-item" :class="{ active: currentTheme === 'theme-light' }" @click="selectTheme('theme-light')" style="background: #2b6cb0;">
-                  <div class="theme-check" v-if="currentTheme === 'theme-light'">✓</div>
-                  <span class="theme-name">浅灰蓝-低调版</span>
-                </div>
-                <div class="theme-item" :class="{ active: currentTheme === 'theme-dark' }" @click="selectTheme('theme-dark')" style="background: #3b82f6;">
-                  <div class="theme-check" v-if="currentTheme === 'theme-dark'">✓</div>
-                  <span class="theme-name">深蓝灰-柔和版</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- 第二组：外观设置 -->
+            <!-- 第一组：外观设置 -->
             <div class="settings-section">
               <div class="section-title">外观设置</div>
               <div class="section-content">
-                <div class="settings-item">
+                <div class="settings-item" :class="{ active: themeMode === 'light' }" @click="setThemeMode('light')">
                   <div class="settings-text">
-                    <div class="settings-item-title">更换背景</div>
-                    <div class="settings-item-desc">选择主题配色</div>
+                    <div class="settings-item-title">浅色</div>
+                    <div class="settings-item-desc">浅蓝灰主题</div>
                   </div>
-                  <span class="settings-arrow">›</span>
+                  <div class="settings-check" v-if="themeMode === 'light'">✓</div>
+                </div>
+                <div class="settings-item" :class="{ active: themeMode === 'dark' }" @click="setThemeMode('dark')">
+                  <div class="settings-text">
+                    <div class="settings-item-title">深色</div>
+                    <div class="settings-item-desc">深蓝灰主题</div>
+                  </div>
+                  <div class="settings-check" v-if="themeMode === 'dark'">✓</div>
+                </div>
+                <div class="settings-item" :class="{ active: themeMode === 'system' }" @click="setThemeMode('system')">
+                  <div class="settings-text">
+                    <div class="settings-item-title">跟随系统</div>
+                    <div class="settings-item-desc">自动匹配系统主题</div>
+                  </div>
+                  <div class="settings-check" v-if="themeMode === 'system'">✓</div>
                 </div>
               </div>
             </div>
@@ -508,6 +507,10 @@ const loadingBgImage = ref('')
 // 当前页面和主题
 const currentPage = ref('venue')
 const currentTheme = ref('theme-light')
+const themeMode = ref('light') // 'light' | 'dark' | 'system'
+
+// 系统主题监听
+let mediaQuery = null
 
 // 设置相关
 const showProjectInfo = ref(false)
@@ -532,10 +535,33 @@ function switchPage(page) {
   currentPage.value = page
 }
 
-// 选择主题
-function selectTheme(theme) {
-  currentTheme.value = theme
-  localStorage.setItem('theme', theme)
+// 设置主题模式
+function setThemeMode(mode) {
+  themeMode.value = mode
+  localStorage.setItem('themeMode', mode)
+  applyTheme()
+}
+
+// 应用主题
+function applyTheme() {
+  if (themeMode.value === 'system') {
+    if (mediaQuery && mediaQuery.matches) {
+      currentTheme.value = 'theme-dark'
+    } else {
+      currentTheme.value = 'theme-light'
+    }
+  } else if (themeMode.value === 'dark') {
+    currentTheme.value = 'theme-dark'
+  } else {
+    currentTheme.value = 'theme-light'
+  }
+}
+
+// 系统主题变化监听
+function handleSystemThemeChange(e) {
+  if (themeMode.value === 'system') {
+    applyTheme()
+  }
 }
 
 // 分享预约情况
@@ -877,11 +903,20 @@ onMounted(() => {
   const randomIndex = Math.floor(Math.random() * bgImages.length)
   loadingBgImage.value = bgImages[randomIndex]
   
-  // 从localStorage读取主题设置
-  const savedTheme = localStorage.getItem('theme')
-  if (savedTheme) {
-    currentTheme.value = savedTheme
+  // 从localStorage读取主题模式设置
+  const savedThemeMode = localStorage.getItem('themeMode')
+  if (savedThemeMode) {
+    themeMode.value = savedThemeMode
   }
+  
+  // 初始化系统主题监听
+  if (typeof window !== 'undefined' && window.matchMedia) {
+    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    mediaQuery.addEventListener('change', handleSystemThemeChange)
+  }
+  
+  // 应用主题
+  applyTheme()
 
   const today = new Date()
   const month = today.getMonth() + 1
@@ -903,7 +938,10 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  // 清理代码（如果需要）
+  // 清理系统主题监听
+  if (mediaQuery) {
+    mediaQuery.removeEventListener('change', handleSystemThemeChange)
+  }
 })
 
 // 获取某个场地和日期的预约记录
@@ -1892,6 +1930,17 @@ button:active {
   color: var(--text-secondary);
   margin-left: 8px;
   font-weight: 300;
+  flex-shrink: 0;
+}
+
+.settings-item.active {
+  background: var(--bg-card);
+}
+
+.settings-check {
+  font-size: 20px;
+  color: var(--accent);
+  font-weight: bold;
   flex-shrink: 0;
 }
 
