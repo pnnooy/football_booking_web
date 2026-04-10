@@ -453,9 +453,9 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue'
 import { supabase } from './supabase'
-import iconShare from '/icons/share.svg?url'
-import iconCourt from '/icons/court.svg?url'
-import iconSettings from '/icons/settings.svg?url'
+import iconShare from './assets/share.svg?url'
+import iconCourt from './assets/court.svg?url'
+import iconSettings from './assets/settings.svg?url'
 
 // 动态加载html2canvas（仅CDN方式）
 async function loadHtml2Canvas() {
