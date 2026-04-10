@@ -102,27 +102,30 @@
             <!-- 第一组：外观设置 -->
             <div class="settings-section">
               <div class="section-title">外观设置</div>
-              <div class="section-content">
-                <div class="settings-item" :class="{ active: themeMode === 'light' }" @click="setThemeMode('light')">
-                  <div class="settings-text">
-                    <div class="settings-item-title">浅色</div>
-                    <div class="settings-item-desc">浅蓝灰主题</div>
-                  </div>
-                  <div class="settings-check" v-if="themeMode === 'light'">✓</div>
+              <div class="theme-selector">
+                <div class="theme-option" :class="{ active: themeMode === 'light' }" @click="setThemeMode('light')">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="theme-icon">
+                    <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                      <circle cx="12" cy="12" r="5"></circle>
+                      <path d="M12 1v2m0 18v2M4.2 4.2l1.4 1.4m12.8 12.8l1.4 1.4M1 12h2m18 0h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4"></path>
+                    </g>
+                  </svg>
+                  <span class="theme-label">浅色</span>
+                  <div class="theme-check" v-if="themeMode === 'light'">✓</div>
                 </div>
-                <div class="settings-item" :class="{ active: themeMode === 'dark' }" @click="setThemeMode('dark')">
-                  <div class="settings-text">
-                    <div class="settings-item-title">深色</div>
-                    <div class="settings-item-desc">深蓝灰主题</div>
-                  </div>
-                  <div class="settings-check" v-if="themeMode === 'dark'">✓</div>
+                <div class="theme-option" :class="{ active: themeMode === 'dark' }" @click="setThemeMode('dark')">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="theme-icon">
+                    <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3h.393a7.5 7.5 0 0 0 7.92 12.446A9 9 0 1 1 12 2.992z"></path>
+                  </svg>
+                  <span class="theme-label">深色</span>
+                  <div class="theme-check" v-if="themeMode === 'dark'">✓</div>
                 </div>
-                <div class="settings-item" :class="{ active: themeMode === 'system' }" @click="setThemeMode('system')">
-                  <div class="settings-text">
-                    <div class="settings-item-title">跟随系统</div>
-                    <div class="settings-item-desc">自动匹配系统主题</div>
-                  </div>
-                  <div class="settings-check" v-if="themeMode === 'system'">✓</div>
+                <div class="theme-option" :class="{ active: themeMode === 'system' }" @click="setThemeMode('system')">
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="theme-icon">
+                    <path fill="currentColor" d="M10.25 2A3.25 3.25 0 0 0 7 5.25v21.5A3.25 3.25 0 0 0 10.25 30h11.5A3.25 3.25 0 0 0 25 26.75V5.25A3.25 3.25 0 0 0 21.75 2zM9 5.25C9 4.56 9.56 4 10.25 4h11.5c.69 0 1.25.56 1.25 1.25v21.5c0 .69-.56 1.25-1.25 1.25h-11.5C9.56 28 9 27.44 9 26.75zM14 24a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2z"></path>
+                  </svg>
+                  <span class="theme-label">跟随系统</span>
+                  <div class="theme-check" v-if="themeMode === 'system'">✓</div>
                 </div>
               </div>
             </div>
@@ -1820,6 +1823,60 @@ button:active {
   padding: 4px;
   overflow: hidden;
   border: 1px solid var(--border);
+}
+
+.theme-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.theme-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 10px;
+  background: var(--bg-secondary);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  position: relative;
+  gap: 8px;
+}
+
+.theme-option.active {
+  border-color: var(--accent);
+  background: var(--bg-card);
+}
+
+.theme-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--text-primary);
+}
+
+.theme-option.active .theme-icon {
+  color: var(--accent);
+}
+
+.theme-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.theme-option.active .theme-label {
+  color: var(--accent);
+}
+
+.theme-option .theme-check {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 16px;
+  color: var(--accent);
+  font-weight: bold;
 }
 
 .theme-grid {
