@@ -1556,9 +1556,27 @@ button:active {
 }
 
 .date-btn.active {
-  background: var(--accent);
-  border-color: transparent;
-  color: #fff;
+  background: var(--bg-secondary);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.date-btn.active .date-day {
+  color: var(--accent);
+}
+
+.date-btn.active .date-week {
+  color: var(--accent);
+}
+
+.date-btn.active .date-status {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+.date-btn.active .date-status.has-booking {
+  background: var(--success-light);
+  color: var(--success);
 }
 
 .date-day {
