@@ -1619,24 +1619,6 @@ button:active {
   border-color: var(--accent);
 }
 
-.date-btn.active .date-day {
-  color: var(--text-primary);
-}
-
-.date-btn.active .date-week {
-  color: var(--text-secondary);
-}
-
-.date-btn.active .date-status {
-  background: var(--bg-card);
-  color: var(--text-secondary);
-}
-
-.date-btn.active .date-status.has-booking {
-  background: var(--success);
-  color: #fff;
-}
-
 .date-day {
   font-size: 22px;
   font-weight: bold;
@@ -1647,10 +1629,6 @@ button:active {
   font-weight: 600;
   color: var(--text-secondary);
   margin-top: 4px;
-}
-
-.date-btn.active .date-week {
-  color: rgba(255, 255, 255, 0.85);
 }
 
 .date-status {
@@ -1666,11 +1644,6 @@ button:active {
 .date-status.has-booking {
   background: var(--success);
   color: #fff;
-}
-
-.date-btn.active .date-status.no-booking {
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.9);
 }
 
 /* ============ 天气显示样式 - 和风天气 ============ */
