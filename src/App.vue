@@ -1624,6 +1624,10 @@ button:active {
   font-weight: bold;
 }
 
+.theme-dark .date-day {
+  color: #e2e8f0;
+}
+
 .date-week {
   font-size: 12px;
   font-weight: 600;
