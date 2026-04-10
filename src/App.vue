@@ -12,15 +12,13 @@
         <!-- 场地情况页面 -->
         <div id="venue-page" class="venue-page" :class="{ active: currentPage === 'venue' }">
           <header class="page-header">
-            <button class="share-btn-fixed" @click="shareSchedule">📤</button>
-            <h1>场地预约情况</h1>
+            <div class="page-header-content">
+              <h1>{{ venues[0].name }}</h1>
+              <button class="share-btn-fixed" @click="shareSchedule">📤</button>
+            </div>
           </header>
 
           <main class="main-content">
-            <!-- 场地名称显示 -->
-            <div class="venue-title">
-              <h2>{{ venues[0].name }}</h2>
-            </div>
 
             <!-- 日期导航 -->
             <div class="date-nav">
@@ -535,7 +533,7 @@ async function shareSchedule() {
     // 动态加载html2canvas
     const h2c = await loadHtml2Canvas()
     
-    // 先隐藏底栏，防止截图时包含
+    // 先隐藏底栏和分享按钮，防止截图时包含
     const tabBar = document.querySelector('.tab-bar')
     const shareBtn = document.querySelector('.share-btn-fixed')
     if (tabBar) tabBar.style.display = 'none'
@@ -1457,6 +1455,15 @@ button:active {
   z-index: 10;
 }
 
+.page-header-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
 .page-header h1 {
   font-size: 22px;
   font-weight: 600;
@@ -1477,8 +1484,8 @@ button:active {
 /* ============ 分享按钮 ============ */
 .share-btn-fixed {
   position: absolute;
+  right: 0;
   top: 50%;
-  right: 70px;
   transform: translateY(-50%);
   width: 44px;
   height: 44px;
