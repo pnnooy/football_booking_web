@@ -99,9 +99,9 @@
           </header>
 
           <div class="settings-body">
-            <!-- 第一组：外观设置 -->
+            <!-- 第一组：主题 -->
             <div class="settings-section">
-              <div class="section-title">外观设置</div>
+              <div class="section-title">主题</div>
               <div class="theme-selector">
                 <div class="theme-option" :class="{ active: themeMode === 'light' }" @click="setThemeMode('light')">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="theme-icon">
@@ -111,21 +111,18 @@
                     </g>
                   </svg>
                   <span class="theme-label">浅色</span>
-                  <div class="theme-check" v-if="themeMode === 'light'">✓</div>
                 </div>
                 <div class="theme-option" :class="{ active: themeMode === 'dark' }" @click="setThemeMode('dark')">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="theme-icon">
                     <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3h.393a7.5 7.5 0 0 0 7.92 12.446A9 9 0 1 1 12 2.992z"></path>
                   </svg>
                   <span class="theme-label">深色</span>
-                  <div class="theme-check" v-if="themeMode === 'dark'">✓</div>
                 </div>
                 <div class="theme-option" :class="{ active: themeMode === 'system' }" @click="setThemeMode('system')">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" class="theme-icon">
                     <path fill="currentColor" d="M10.25 2A3.25 3.25 0 0 0 7 5.25v21.5A3.25 3.25 0 0 0 10.25 30h11.5A3.25 3.25 0 0 0 25 26.75V5.25A3.25 3.25 0 0 0 21.75 2zM9 5.25C9 4.56 9.56 4 10.25 4h11.5c.69 0 1.25.56 1.25 1.25v21.5c0 .69-.56 1.25-1.25 1.25h-11.5C9.56 28 9 27.44 9 26.75zM14 24a1 1 0 1 0 0 2h4a1 1 0 1 0 0-2z"></path>
                   </svg>
                   <span class="theme-label">跟随系统</span>
-                  <div class="theme-check" v-if="themeMode === 'system'">✓</div>
                 </div>
               </div>
             </div>
@@ -1868,15 +1865,6 @@ button:active {
 
 .theme-option.active .theme-label {
   color: var(--accent);
-}
-
-.theme-option .theme-check {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 16px;
-  color: var(--accent);
-  font-weight: bold;
 }
 
 .theme-grid {
