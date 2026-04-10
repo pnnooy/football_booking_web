@@ -1,4 +1,6 @@
-# Football Pitch Booking Board
+# Football Pitch Booking Board | 足球场地预约看板
+
+[English Version](README-en.md) | [中文版](README.md)
 
 A clean and beautiful football pitch booking system to help you quickly view and book football pitches.
 
