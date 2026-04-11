@@ -85,8 +85,8 @@
                       </span>
                     </div>
                     <!-- 想踢数量显示 -->
-                    <div v-if="getWantToPlayCount(currentVenue, selectedDate, hour) > 0" class="want-to-play-badge">
-                      ⚽ 想踢×{{ getWantToPlayCount(currentVenue, selectedDate, hour) }}
+                    <div v-if="currentWantToPlay[hour] > 0" class="want-to-play-badge">
+                      ⚽ 想踢×{{ currentWantToPlay[hour] }}
                     </div>
                   </div>
                   <span class="time-status">{{ getSlotStatus(hour) }}</span>
@@ -721,6 +721,16 @@ const adminSlotRemark = ref('')
 const adminSlotStatus = ref('')
 const slotInfoStatus = ref('')
 const slotInfoRemark = ref('')
+
+// 缓存当前日期的想踢数据，加速访问
+const currentWantToPlay = computed(() => {
+  const result = {}
+  timeSlots.forEach(hour => {
+    const key = getWantToPlayKey(currentVenue.value, selectedDate.value, hour)
+    result[hour] = wantToPlayData.value[key] || 0
+  })
+  return result
+})
 
 // 加载页背景样式
 const loadingBgStyle = computed(() => {
