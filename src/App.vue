@@ -14,7 +14,7 @@
           <header class="page-header">
             <div class="page-header-content">
               <h1>{{ venues[0].name }}</h1>
-              <button class="share-btn-fixed" @click="shareSchedule">
+              <button v-if="isAdminLoggedIn" class="share-btn-fixed" @click="shareSchedule">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link icon-share">
                   <path d="M15 3h6v6"></path>
                   <path d="M10 14 21 3"></path>
@@ -68,7 +68,7 @@
 
                 <!-- 时段块 -->
                 <div
-                  :class="['time-slot', getSlotClass(hour)]"
+                  :class="['time-slot', getSlotClass(hour), { 'time-slot-locked': !isAdminLoggedIn }]"
                   @click="handleSlotClick(hour)"
                   @touchstart="startPress(hour)"
                   @touchend="cancelPress"
@@ -195,6 +195,27 @@
                   <div class="settings-text">
                     <div class="settings-item-title">开发者信息</div>
                     <div class="settings-item-desc">作者、仓库、协议等</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第七组：管理员功能 -->
+            <div class="settings-section">
+              <div class="section-title">管理员功能</div>
+              <div class="section-content">
+                <div v-if="!isAdminLoggedIn" class="settings-item" @click="showAdminLoginModal = true">
+                  <div class="settings-text">
+                    <div class="settings-item-title">管理员登录</div>
+                    <div class="settings-item-desc">登录后可管理预约</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+                <div v-else class="settings-item" @click="handleAdminLogout">
+                  <div class="settings-text">
+                    <div class="settings-item-title">退出登录</div>
+                    <div class="settings-item-desc">当前已登录</div>
                   </div>
                   <span class="settings-arrow">›</span>
                 </div>
@@ -430,8 +451,8 @@
           <div class="help-section">
             <h4>基本使用</h4>
             <p>1. <strong>查看预约</strong>：选择日期后，下方会显示该日期的所有时间段预约情况</p>
-            <p>2. <strong>预约场地</strong>：点击"可预约"的时间段，输入管理员密码即可完成预约</p>
-            <p>3. <strong>取消预约</strong>：点击"已预约"的时间段，输入密码即可取消</p>
+            <p>2. <strong>预约场地</strong>：需先登录管理员账号，点击"可预约"的时间段，输入管理员密码即可完成预约</p>
+            <p>3. <strong>取消预约</strong>：需先登录管理员账号，点击"已预约"的时间段，输入密码即可取消</p>
           </div>
           <div class="help-section">
             <h4>天气功能</h4>
@@ -442,7 +463,7 @@
           <div class="help-section">
             <h4>设置功能</h4>
             <p>1. <strong>主题配色</strong>：支持浅灰蓝-低调版和深蓝灰-柔和版两种主题</p>
-            <p>2. <strong>分享功能</strong>：可将预约情况导出为图片分享</p>
+            <p>2. <strong>分享功能</strong>：需登录管理员账号，可将预约情况导出为图片分享</p>
             <p>3. <strong>清除缓存</strong>：清除天气缓存或所有本地数据</p>
           </div>
           <div class="help-section">
@@ -452,8 +473,35 @@
             <p><strong>Q: 天气数据准确吗？</strong></p>
             <p>A: 天气数据来自和风天气API，仅供参考。</p>
             <p><strong>Q: 如何修改管理员密码？</strong></p>
-            <p>A: 目前需要联系开发者修改。</p>
+            <p>A: 在 Supabase 控制台的 Authentication 中修改。</p>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 管理员登录弹窗 -->
+    <div v-if="showAdminLoginModal" class="modal-overlay" @click="showAdminLoginModal = false">
+      <div class="modal" @click.stop>
+        <h3>管理员登录</h3>
+        <input
+          v-model="adminEmail"
+          type="email"
+          class="password-input"
+          placeholder="请输入邮箱..."
+          @keyup.enter="adminPassword ? handleAdminLogin() : null"
+          autofocus
+        />
+        <input
+          v-model="adminPassword"
+          type="password"
+          class="password-input"
+          placeholder="请输入密码..."
+          style="margin-top: 10px;"
+          @keyup.enter="handleAdminLogin"
+        />
+        <div class="modal-buttons">
+          <button class="btn-cancel" @click="showAdminLoginModal = false">取消</button>
+          <button class="btn-confirm" @click="handleAdminLogin">登录</button>
         </div>
       </div>
     </div>
@@ -519,6 +567,12 @@ const showLiabilityModal = ref(false)
 const showFeedbackModal = ref(false)
 const showSuggestionModal = ref(false)
 const showHelpModal = ref(false)
+
+// 管理员登录相关
+const isAdminLoggedIn = ref(false)
+const showAdminLoginModal = ref(false)
+const adminEmail = ref('')
+const adminPassword = ref('')
 
 // 加载页背景样式
 const loadingBgStyle = computed(() => {
@@ -734,6 +788,40 @@ function submitSuggestion() {
   showSuggestionModal.value = false
 }
 
+// 管理员登录
+async function handleAdminLogin() {
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: adminEmail.value,
+      password: adminPassword.value
+    })
+
+    if (error) throw error
+
+    isAdminLoggedIn.value = true
+    localStorage.setItem('isAdminLoggedIn', 'true')
+    showAdminLoginModal.value = false
+    adminEmail.value = ''
+    adminPassword.value = ''
+    alert('登录成功！')
+  } catch (error) {
+    console.error('登录失败:', error)
+    alert('登录失败，请检查邮箱和密码')
+  }
+}
+
+// 管理员退出
+async function handleAdminLogout() {
+  try {
+    await supabase.auth.signOut()
+    isAdminLoggedIn.value = false
+    localStorage.removeItem('isAdminLoggedIn')
+    alert('已退出登录')
+  } catch (error) {
+    console.error('退出失败:', error)
+  }
+}
+
 // 场地实际状态数据（从time_slots表获取）
 const venueSlots = ref([])
 
@@ -898,7 +986,7 @@ function getHourlyWeather(dateStr, hour) {
 }
 
 // 初始化 selectedDate 为今天
-onMounted(() => {
+onMounted(async () => {
   // 设置加载页随机背景
   const randomIndex = Math.floor(Math.random() * bgImages.length)
   loadingBgImage.value = bgImages[randomIndex]
@@ -908,6 +996,23 @@ onMounted(() => {
   if (savedThemeMode) {
     themeMode.value = savedThemeMode
   }
+  
+  // 检查管理员登录状态
+  const { data: { session } } = await supabase.auth.getSession()
+  isAdminLoggedIn.value = !!session
+  if (session) {
+    localStorage.setItem('isAdminLoggedIn', 'true')
+  }
+  
+  // 监听登录状态变化
+  supabase.auth.onAuthStateChange((_event, session) => {
+    isAdminLoggedIn.value = !!session
+    if (session) {
+      localStorage.setItem('isAdminLoggedIn', 'true')
+    } else {
+      localStorage.removeItem('isAdminLoggedIn')
+    }
+  })
   
   // 初始化系统主题监听
   if (typeof window !== 'undefined' && window.matchMedia) {
@@ -1037,24 +1142,21 @@ function hasDateBooking(date) {
 
 // 处理时段点击
 function handleSlotClick(hour) {
+  if (!isAdminLoggedIn.value) {
+    alert('请先登录管理员账号')
+    return
+  }
+  
   if (isExpired(hour)) {
     alert('已过时的时段无法操作')
     return
   }
 
-  // 如果用户已预约，需要密码才能取消
-  if (isBooked(hour)) {
-    pendingAction.value = { type: 'cancel', hour: hour }
-    showPasswordModal.value = true
-    passwordInput.value = ''
-    return
+  // 确认操作
+  const action = isBooked(hour) ? '取消预约' : '预约'
+  if (confirm(`确认${action}该时段（${hour}:00 - ${hour + 1}:00）？`)) {
+    toggleBooking(hour)
   }
-
-  // 用户未预约时，任何状态都可以改为已预约（需要密码）
-  // 不再检查场地实际状态，所有时段都可以预约
-  pendingAction.value = { type: 'book', hour: hour }
-  showPasswordModal.value = true
-  passwordInput.value = ''
 }
 
 // 确认切换预约状态
@@ -1098,6 +1200,10 @@ function verifyPassword() {
 let pressTimer = null
 
 function startPress(hour) {
+  if (!isAdminLoggedIn.value) {
+    alert('请先登录管理员账号')
+    return
+  }
   if (isExpired(hour)) return
 
   pressTimer = setTimeout(() => {
@@ -1791,6 +1897,10 @@ button:active {
   background: var(--bg-secondary);
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+.time-slot.time-slot-locked:not(.expired) {
+  cursor: not-allowed;
 }
 
 /* ============ 设置页面 ============ */

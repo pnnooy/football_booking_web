@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>新UI Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* ============ 主题变量 ============ */
+        /* 白色系 - 极简白 */
+        .theme-white-1 {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-card: #e9ecef;
+            --text-primary: #212529;
+            --text-secondary: #6c757d;
+            --accent: #409eff;
+            --accent-hover: #337ecc;
+            --success: #67c23a;
+            --warning: #e6a23c;
+            --danger: #f56c6c;
+            --border: #dee2e6;
+        }
+
+        /* 白色系 - 浅灰蓝 */
+        .theme-white-2 {
+            --bg-primary: #f5f7fa;
+            --bg-secondary: #ffffff;
+            --bg-card: #e4e7ed;
+            --text-primary: #303133;
+            --text-secondary: #909399;
+            --accent: #409eff;
+            --accent-hover: #337ecc;
+            --success: #67c23a;
+            --warning: #e6a23c;
+            --danger: #f56c6c;
+            --border: #dcdfe6;
+        }
+
+        /* 黑色系 - 深邃黑 */
+        .theme-black-1 {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #141414;
+            --bg-card: #1f1f1f;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #2d2d2d;
+        }
+
+        /* 黑色系 - 深蓝灰 */
+        .theme-black-2 {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --border: #475569;
+        }
+
+        .app {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+
+        /* ============ 页面容器 ============ */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: 70px;
+        }
+
+        .page-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ============ 页面头部 ============ */
+        .page-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            background: var(--bg-primary);
+            z-index: 10;
+        }
+
+        .page-header h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .settings-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-primary);
+        }
+
+        .settings-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* ============ 分享按钮 ============ */
+        .share-btn-fixed {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            background: var(--bg-card);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            font-size: 20px;
+        }
+
+        .share-btn-fixed:hover {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        /* ============ 场地页面 ============ */
+        .venue-page {
+            min-height: 100%;
+        }
+
+        .main-content {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .venue-title {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .venue-title h2 {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* ============ 日期导航 ============ */
+        .date-nav {
+            margin-bottom: 24px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .dates-scroll {
+            display: flex;
+            gap: 12px;
+            padding: 5px 0;
+        }
+
+        .date-btn {
+            flex-shrink: 0;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+            min-height: 100px;
+        }
+
+        .date-btn:hover {
+            background: var(--bg-card);
+        }
+
+        .date-btn.active {
+            background: var(--accent);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .date-day {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .date-week {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .date-btn.active .date-week {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .date-status {
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            margin-top: 8px;
+            font-weight: 600;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        .date-status.has-booking {
+            background: var(--success);
+            color: #fff;
+        }
+
+        /* ============ 时间网格 ============ */
+        .time-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .time-slot-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .time-slot {
+            padding: 18px 20px;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid transparent;
+        }
+
+        .time-slot:hover:not(.expired) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .time-label {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .time-status {
+            font-size: 14px;
+            padding: 6px 18px;
+            border-radius: 20px;
+            background: rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+        }
+
+        .time-slot.available {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .time-slot.available .time-status {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .time-slot.unavailable {
+            background: var(--bg-card);
+            opacity: 0.7;
+        }
+
+        .time-slot.booked {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .time-slot.booked .time-status {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .time-slot.expired {
+            background: var(--bg-secondary);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* ============ 设置页面 ============ */
+        .settings-page {
+            min-height: 100%;
+        }
+
+        .settings-body {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .settings-section {
+            margin-bottom: 32px;
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .section-content {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 12px;
+        }
+
+        .theme-item {
+            aspect-ratio: 1;
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid transparent;
+        }
+
+        .theme-item:hover {
+            transform: scale(1.05);
+        }
+
+        .theme-item.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        .theme-check {
+            font-size: 24px;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: left;
+            width: 100%;
+        }
+
+        .settings-item:hover {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .settings-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .settings-item-title {
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .settings-item-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .settings-arrow {
+            font-size: 22px;
+            color: var(--text-secondary);
+            margin-left: 8px;
+            font-weight: 300;
+            flex-shrink: 0;
+        }
+
+        /* ============ 底栏导航 ============ */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            z-index: 100;
+            backdrop-filter: blur(20px);
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-icon {
+            font-size: 26px;
+            margin-bottom: 4px;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+
+        .tab-label {
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0.5;
+            transition: all 0.3s;
+        }
+
+        .tab-item.active .tab-icon,
+        .tab-item.active .tab-label {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        /* ============ 页面切换 ============ */
+        .venue-page,
+        .settings-page {
+            display: none;
+        }
+
+        .venue-page.active,
+        .settings-page.active {
+            display: block;
+        }
+
+        /* ============ 主题选择器 ============ */
+        .theme-selector {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .theme-btn {
+            padding: 8px 14px;
+            border: 1px solid var(--border);
+            background: var(--bg-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: all 0.3s;
+        }
+
+        .theme-btn:hover {
+            background: var(--bg-card);
+        }
+
+        .theme-btn.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* ============ 提示信息 ============ */
+        .demo-hint {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body class="theme-white-1">
+    <div class="app" id="app">
+        <!-- 主题选择器 -->
+        <div class="theme-selector">
+            <button class="theme-btn active" onclick="changeTheme('theme-white-1')">极简白</button>
+            <button class="theme-btn" onclick="changeTheme('theme-white-2')">浅灰蓝</button>
+            <button class="theme-btn" onclick="changeTheme('theme-black-1')">深邃黑</button>
+            <button class="theme-btn" onclick="changeTheme('theme-black-2')">深蓝灰</button>
+        </div>
+
+        <!-- Demo提示 -->
+        <div class="demo-hint">
+            🎨 UI Demo - 点击上方按钮切换主题
+        </div>
+
+        <div class="main-container">
+            <div class="page-content">
+                <!-- 场地情况页面 -->
+                <div id="venue-page" class="venue-page active">
+                    <header class="page-header">
+                        <h1>场地预约情况</h1>
+                        <button class="share-btn-fixed">📤</button>
+                    </header>
+
+                    <main class="main-content">
+                        <div class="venue-title">
+                            <h2>笼式足球场</h2>
+                        </div>
+
+                        <div class="date-nav">
+                            <div class="dates-scroll">
+                                <button class="date-btn active">
+                                    <span class="date-day">10</span>
+                                    <span class="date-week">周五</span>
+                                    <span class="date-status has-booking">有</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">11</span>
+                                    <span class="date-week">周六</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">12</span>
+                                    <span class="date-week">周日</span>
+                                    <span class="date-status has-booking">有</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">13</span>
+                                    <span class="date-week">周一</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">14</span>
+                                    <span class="date-week">周二</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">15</span>
+                                    <span class="date-week">周三</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">16</span>
+                                    <span class="date-week">周四</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">17</span>
+                                    <span class="date-week">周五</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="time-grid">
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot available">
+                                    <span class="time-label">14:00 - 15:00</span>
+                                    <span class="time-status">可预约</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot booked">
+                                    <span class="time-label">15:00 - 16:00</span>
+                                    <span class="time-status">已预约</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot available">
+                                    <span class="time-label">16:00 - 17:00</span>
+                                    <span class="time-status">可预约</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot available">
+                                    <span class="time-label">17:00 - 18:00</span>
+                                    <span class="time-status">可预约</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot unavailable">
+                                    <span class="time-label">18:00 - 19:00</span>
+                                    <span class="time-status">不可选</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot expired">
+                                    <span class="time-label">19:00 - 20:00</span>
+                                    <span class="time-status">已过期</span>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+
+                <!-- 设置页面 -->
+                <div id="settings-page" class="settings-page">
+                    <header class="settings-header">
+                        <h2>设置</h2>
+                    </header>
+
+                    <div class="settings-body">
+                        <div class="settings-section">
+                            <div class="section-title">主题配色</div>
+                            <div class="theme-grid">
+                                <div class="theme-item" style="background: #ffffff;" onclick="changeTheme('theme-white-1')">
+                                    <div class="theme-check" id="check-white-1">✓</div>
+                                </div>
+                                <div class="theme-item" style="background: #f5f7fa;" onclick="changeTheme('theme-white-2')">
+                                    <div class="theme-check" id="check-white-2" style="display: none;">✓</div>
+                                </div>
+                                <div class="theme-item" style="background: #0a0a0a;" onclick="changeTheme('theme-black-1')">
+                                    <div class="theme-check" id="check-black-1" style="display: none;">✓</div>
+                                </div>
+                                <div class="theme-item" style="background: #0f172a;" onclick="changeTheme('theme-black-2')">
+                                    <div class="theme-check" id="check-black-2" style="display: none;">✓</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <div class="section-title">外观设置</div>
+                            <div class="section-content">
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">更换背景</div>
+                                        <div class="settings-item-desc">选择图片背景或纯色背景</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <div class="section-title">反馈与帮助</div>
+                            <div class="section-content">
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">问题反馈</div>
+                                        <div class="settings-item-desc">报告Bug或遇到的问题</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">功能建议</div>
+                                        <div class="settings-item-desc">提出新功能或改进建议</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">使用帮助</div>
+                                        <div class="settings-item-desc">查看使用说明和常见问题</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <div class="section-title">缓存管理</div>
+                            <div class="section-content">
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">清除天气缓存</div>
+                                        <div class="settings-item-desc">清除已缓存的天气数据</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">清除所有本地数据</div>
+                                        <div class="settings-item-desc">清除所有缓存和本地存储</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <div class="section-title">项目信息</div>
+                            <div class="section-content">
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">项目信息</div>
+                                        <div class="settings-item-desc">版本、更新日志等</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">开发者信息</div>
+                                        <div class="settings-item-desc">作者、仓库、协议等</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底栏导航 -->
+            <nav class="tab-bar">
+                <button class="tab-item active" onclick="switchPage('venue')">
+                    <span class="tab-icon">⚽</span>
+                    <span class="tab-label">场地情况</span>
+                </button>
+                <button class="tab-item" onclick="switchPage('settings')">
+                    <span class="tab-icon">⚙️</span>
+                    <span class="tab-label">设置</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = 'theme-white-1';
+        let currentPage = 'venue';
+
+        function changeTheme(themeName) {
+            document.body.className = themeName;
+            currentTheme = themeName;
+
+            // 更新主题按钮状态
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(getThemeName(themeName))) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // 更新主题选择器勾选状态
+            document.querySelectorAll('.theme-check').forEach(check => {
+                check.style.display = 'none';
+            });
+            const checkId = 'check-' + themeName.replace('theme-', '');
+            const checkEl = document.getElementById(checkId);
+            if (checkEl) {
+                checkEl.style.display = 'block';
+            }
+        }
+
+        function getThemeName(theme) {
+            const names = {
+                'theme-white-1': '极简白',
+                'theme-white-2': '浅灰蓝',
+                'theme-black-1': '深邃黑',
+                'theme-black-2': '深蓝灰'
+            };
+            return names[theme] || '';
+        }
+
+        function switchPage(page) {
+            currentPage = page;
+
+            // 更新页面显示
+            document.getElementById('venue-page').classList.remove('active');
+            document.getElementById('settings-page').classList.remove('active');
+            document.getElementById(page + '-page').classList.add('active');
+
+            // 更新底栏状态
+            document.querySelectorAll('.tab-item').forEach((item, index) => {
+                item.classList.remove('active');
+                if ((page === 'venue' && index === 0) || (page === 'settings' && index === 1)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        // 初始化主题选择器勾选状态
+        document.getElementById('check-white-1').style.display = 'block';
+    </script>
+</body>
+</html>
