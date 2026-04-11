@@ -907,6 +907,22 @@ function clearWeatherCache() {
   fetchWeatherData()
 }
 
+// 清除想踢数据缓存
+function clearWantToPlayCache() {
+  // 清除所有想踢相关的缓存
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i)
+    if (key && (key.startsWith('wantToPlay_') || key.startsWith('wantToPlayTime_'))) {
+      localStorage.removeItem(key)
+    }
+  }
+  // 重置数据
+  wantToPlayData.value = {}
+  alert('想踢数据缓存已清除！')
+  // 重新加载数据
+  fetchWantToPlayData(false)
+}
+
 // 清除所有本地数据
 function clearAllCache() {
   if (confirm('确定要清除所有本地数据吗？此操作不可恢复。')) {
@@ -1447,8 +1463,27 @@ function getWantToPlayCount(venue, date, timeSlot) {
   return wantToPlayData.value[key] || 0
 }
 
-// 加载想踢数据
-async function fetchWantToPlayData() {
+// 加载想踢数据（带本地缓存优化）
+async function fetchWantToPlayData(useCacheFirst = true) {
+  const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
+  const cacheTimeKey = `wantToPlayTime_${currentVenue.value}_${selectedDate.value}`
+  
+  // 先尝试使用缓存
+  if (useCacheFirst) {
+    const cachedData = localStorage.getItem(cacheKey)
+    const cachedTime = localStorage.getItem(cacheTimeKey)
+    const now = Date.now()
+    
+    if (cachedData && cachedTime && (now - parseInt(cachedTime)) < 5 * 60 * 1000) {
+      // 5分钟内的缓存直接使用
+      wantToPlayData.value = JSON.parse(cachedData)
+      // 后台异步更新
+      updateWantToPlayCacheInBackground()
+      return
+    }
+  }
+  
+  // 缓存过期或没有缓存，从网络加载
   try {
     const { data, error } = await supabase
       .from('want_to_play')
@@ -1464,8 +1499,44 @@ async function fetchWantToPlayData() {
       newData[key] = item.count
     })
     wantToPlayData.value = newData
+    
+    // 保存到本地缓存
+    localStorage.setItem(cacheKey, JSON.stringify(newData))
+    localStorage.setItem(cacheTimeKey, Date.now().toString())
   } catch (error) {
     console.error('获取想踢数据失败:', error)
+    // 如果网络失败，尝试使用旧缓存
+    const cachedData = localStorage.getItem(cacheKey)
+    if (cachedData) {
+      wantToPlayData.value = JSON.parse(cachedData)
+    }
+  }
+}
+
+// 后台更新想踢数据缓存
+async function updateWantToPlayCacheInBackground() {
+  try {
+    const { data, error } = await supabase
+      .from('want_to_play')
+      .select('*')
+      .eq('venue', currentVenue.value)
+      .eq('date', selectedDate.value)
+
+    if (error) throw error
+
+    const newData = {}
+    data.forEach(item => {
+      const key = getWantToPlayKey(item.venue, item.date, item.time_slot)
+      newData[key] = item.count
+    })
+    wantToPlayData.value = newData
+    
+    // 更新缓存
+    const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
+    localStorage.setItem(cacheKey, JSON.stringify(newData))
+    localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
+  } catch (error) {
+    console.error('后台更新想踢数据失败:', error)
   }
 }
 
@@ -1476,13 +1547,19 @@ async function incrementWantToPlay() {
   const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
   const currentCount = wantToPlayData.value[key] || 0
   const newCount = currentCount + 1
+  const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
 
   try {
-    // 先更新本地
+    // 先更新本地（立即显示，不等待网络）
     wantToPlayData.value[key] = newCount
+    showSlotInfoModal.value = false
+    
+    // 更新本地缓存
+    localStorage.setItem(cacheKey, JSON.stringify(wantToPlayData.value))
+    localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
 
-    // 再更新数据库
-    const { error } = await supabase
+    // 后台异步更新数据库
+    supabase
       .from('want_to_play')
       .upsert({
         venue: currentVenue.value,
@@ -1493,8 +1570,10 @@ async function incrementWantToPlay() {
       }, {
         onConflict: 'venue,date,time_slot'
       })
-
-    if (error) throw error
+      .catch(error => {
+        console.error('想踢+1数据库更新失败:', error)
+        // 后台失败不影响用户体验
+      })
   } catch (error) {
     console.error('想踢+1失败:', error)
     // 回滚本地
@@ -1611,8 +1690,18 @@ async function saveAdminSlotChanges() {
 
     // 3. 处理想踢数量
     const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
+    const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
+    
     if (wantToPlayEditCount.value !== (wantToPlayData.value[key] || 0)) {
-      const { error } = await supabase
+      // 先更新本地（立即显示）
+      wantToPlayData.value[key] = wantToPlayEditCount.value
+      
+      // 更新本地缓存
+      localStorage.setItem(cacheKey, JSON.stringify(wantToPlayData.value))
+      localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
+
+      // 后台异步更新数据库
+      supabase
         .from('want_to_play')
         .upsert({
           venue: currentVenue.value,
@@ -1623,9 +1712,9 @@ async function saveAdminSlotChanges() {
         }, {
           onConflict: 'venue,date,time_slot'
         })
-
-      if (error) throw error
-      wantToPlayData.value[key] = wantToPlayEditCount.value
+        .catch(error => {
+          console.error('保存想踢数量数据库更新失败:', error)
+        })
     }
 
     // 关闭弹窗
