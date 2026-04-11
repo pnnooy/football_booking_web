@@ -1701,15 +1701,15 @@ async function saveAdminSlotChanges() {
     const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
     
     if (wantToPlayEditCount.value !== (wantToPlayData.value[key] || 0)) {
-      // 先更新本地（立即显示）
+      // 先更新本地
       wantToPlayData.value[key] = wantToPlayEditCount.value
       
       // 更新本地缓存
       localStorage.setItem(cacheKey, JSON.stringify(wantToPlayData.value))
       localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
 
-      // 后台异步更新数据库
-      supabase
+      // 同步更新数据库
+      const { error } = await supabase
         .from('want_to_play')
         .upsert({
           venue: currentVenue.value,
@@ -1720,9 +1720,8 @@ async function saveAdminSlotChanges() {
         }, {
           onConflict: 'venue,date,time_slot'
         })
-        .catch(error => {
-          console.error('保存想踢数量数据库更新失败:', error)
-        })
+
+      if (error) throw error
     }
 
     // 关闭弹窗
