@@ -591,7 +591,14 @@
         <div class="modal-footer">
           <button class="modal-btn modal-btn-secondary" @click="showSlotInfoModal = false">关闭</button>
           <button v-if="isAdminLoggedIn" class="modal-btn modal-btn-primary" @click="saveWantToPlayCount">保存</button>
-          <button v-else class="modal-btn modal-btn-primary" @click="incrementWantToPlay">想踢+1</button>
+          <button v-else 
+                  class="modal-btn modal-btn-primary" 
+                  @click="incrementWantToPlay"
+                  :disabled="wantToPlayButtonState !== 'idle'">
+            <span v-if="wantToPlayButtonState === 'idle'">想踢+1</span>
+            <span v-else-if="wantToPlayButtonState === 'loading'">提交中...</span>
+            <span v-else-if="wantToPlayButtonState === 'success'">✓ 已记录</span>
+          </button>
         </div>
       </div>
     </div>
@@ -715,6 +722,7 @@ const adminPassword = ref('')
 const showSlotInfoModal = ref(false)
 const showAdminSlotModal = ref(false)
 const currentSlot = ref(null)
+const wantToPlayButtonState = ref('idle') // 'idle' | 'loading' | 'success'
 // wantToPlayCache: { "venue_date": { "timeSlot": count } }
 const wantToPlayCache = ref({})
 const wantToPlayEditCount = ref(0)
@@ -1504,6 +1512,36 @@ function markUserWantToPlay(venue, date, timeSlot) {
   localStorage.setItem(key, 'true')
 }
 
+// 公共函数：更新想踢数量（更新缓存和数据库）
+async function updateWantToPlayCount(venue, date, timeSlot, count) {
+  const key = getWantToPlayKey(venue, date, timeSlot)
+  const cacheKey = `${venue}_${date}`
+  const localStorageCacheKey = `wantToPlay_${venue}_${date}`
+
+  // 更新内存缓存
+  if (!wantToPlayCache.value[cacheKey]) {
+    wantToPlayCache.value[cacheKey] = {}
+  }
+  wantToPlayCache.value[cacheKey][key] = count
+
+  // 更新本地缓存
+  localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
+  localStorage.setItem(`wantToPlayTime_${venue}_${date}`, Date.now().toString())
+
+  // 更新数据库
+  const { error } = await supabase
+    .from('want_to_play')
+    .upsert({
+      venue,
+      date,
+      time_slot: timeSlot,
+      count,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'venue,date,time_slot' })
+
+  if (error) throw error
+}
+
 // 加载想踢数据（带本地缓存优化）
 async function fetchWantToPlayData(useCacheFirst = true) {
   const cacheKey = `${currentVenue.value}_${selectedDate.value}`
@@ -1600,6 +1638,7 @@ async function incrementWantToPlay() {
   const venue = currentVenue.value
   const date = selectedDate.value
   const timeSlot = currentSlot.value
+  const cacheKey = `${venue}_${date}`
 
   // 检查用户是否已经想踢过
   if (hasUserWantToPlay(venue, date, timeSlot)) {
@@ -1608,55 +1647,37 @@ async function incrementWantToPlay() {
   }
 
   const key = getWantToPlayKey(venue, date, timeSlot)
-  const cacheKey = `${venue}_${date}`
-  const localStorageCacheKey = `wantToPlay_${venue}_${date}`
-  
-  // 确保内存缓存中有数据
-  if (!wantToPlayCache.value[cacheKey]) {
-    wantToPlayCache.value[cacheKey] = {}
-  }
-  
-  const currentCount = wantToPlayCache.value[cacheKey][key] || 0
+  const currentCount = wantToPlayCache.value[cacheKey]?.[key] || 0
   const newCount = currentCount + 1
 
-  // 先更新内存缓存（立即显示）
-  wantToPlayCache.value[cacheKey][key] = newCount
-  // 先不关闭弹窗，让用户看到成功状态
-  
-  // 更新本地缓存
-  localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
-  localStorage.setItem(`wantToPlayTime_${venue}_${date}`, Date.now().toString())
+  // 设置为加载状态
+  wantToPlayButtonState.value = 'loading'
 
   try {
-    // 同步更新数据库
-    const { error } = await supabase
-      .from('want_to_play')
-      .upsert({
-        venue,
-        date,
-        time_slot: timeSlot,
-        count: newCount,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'venue,date,time_slot'
-      })
-
-    if (error) throw error
+    // 使用公共函数更新想踢数量
+    await updateWantToPlayCount(venue, date, timeSlot, newCount)
 
     // 标记用户已想踢
     markUserWantToPlay(venue, date, timeSlot)
-    
-    // 成功后关闭弹窗
-    showSlotInfoModal.value = false
-    alert('已记录您想踢的意愿！')
+
+    // 设置为成功状态
+    wantToPlayButtonState.value = 'success'
+
+    // 延迟关闭弹窗，让用户看到成功状态
+    setTimeout(() => {
+      showSlotInfoModal.value = false
+    }, 1500)
 
   } catch (error) {
     console.error('想踢+1失败:', error)
     
     // 回滚本地缓存
-    wantToPlayCache.value[cacheKey][key] = currentCount
-    localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
+    if (wantToPlayCache.value[cacheKey]) {
+      wantToPlayCache.value[cacheKey][key] = currentCount
+    }
     
+    // 重置按钮状态
+    wantToPlayButtonState.value = 'idle'
     alert('操作失败，请重试')
   }
 }
@@ -1665,42 +1686,27 @@ async function incrementWantToPlay() {
 async function saveWantToPlayCount() {
   if (!currentSlot.value) return
 
-  const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
-  const cacheKey = `${currentVenue.value}_${selectedDate.value}`
-  const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
+  const venue = currentVenue.value
+  const date = selectedDate.value
+  const timeSlot = currentSlot.value
+  const cacheKey = `${venue}_${date}`
+  const key = getWantToPlayKey(venue, date, timeSlot)
+  const currentCount = wantToPlayCache.value[cacheKey]?.[key] || 0
 
   try {
-    // 确保内存缓存中有数据
-    if (!wantToPlayCache.value[cacheKey]) {
-      wantToPlayCache.value[cacheKey] = {}
-    }
-    
-    // 先更新内存缓存
-    wantToPlayCache.value[cacheKey][key] = wantToPlayEditCount.value
-    
-    // 更新本地缓存
-    localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
-    localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
-
-    // 同步更新数据库
-    const { error } = await supabase
-      .from('want_to_play')
-      .upsert({
-        venue: currentVenue.value,
-        date: selectedDate.value,
-        time_slot: currentSlot.value,
-        count: wantToPlayEditCount.value,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'venue,date,time_slot'
-      })
-
-    if (error) throw error
+    // 使用公共函数更新想踢数量
+    await updateWantToPlayCount(venue, date, timeSlot, wantToPlayEditCount.value)
 
     // 关闭弹窗
     showSlotInfoModal.value = false
   } catch (error) {
     console.error('保存想踢数量失败:', error)
+    
+    // 回滚本地缓存
+    if (wantToPlayCache.value[cacheKey]) {
+      wantToPlayCache.value[cacheKey][key] = currentCount
+    }
+    
     alert('保存失败，请重试')
   }
 }
@@ -1709,6 +1715,9 @@ async function saveWantToPlayCount() {
 function handleSlotClick(hour) {
   // 先设置当前时段
   currentSlot.value = hour
+  
+  // 重置按钮状态
+  wantToPlayButtonState.value = 'idle'
   
   // 获取想踢数量用于编辑
   wantToPlayEditCount.value = getWantToPlayCount(currentVenue.value, selectedDate.value, hour)
@@ -1782,39 +1791,16 @@ async function saveAdminSlotChanges() {
     }
 
     // 3. 处理想踢数量
-    const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
-    const cacheKey = `${currentVenue.value}_${selectedDate.value}`
-    const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
-    
-    // 确保内存缓存中有数据
-    if (!wantToPlayCache.value[cacheKey]) {
-      wantToPlayCache.value[cacheKey] = {}
-    }
-    
-    const currentCount = wantToPlayCache.value[cacheKey][key] || 0
+    const venue = currentVenue.value
+    const date = selectedDate.value
+    const timeSlot = currentSlot.value
+    const cacheKey = `${venue}_${date}`
+    const key = getWantToPlayKey(venue, date, timeSlot)
+    const currentCount = wantToPlayCache.value[cacheKey]?.[key] || 0
     
     if (wantToPlayEditCount.value !== currentCount) {
-      // 先更新内存缓存
-      wantToPlayCache.value[cacheKey][key] = wantToPlayEditCount.value
-      
-      // 更新本地缓存
-      localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
-      localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
-
-      // 同步更新数据库
-      const { error } = await supabase
-        .from('want_to_play')
-        .upsert({
-          venue: currentVenue.value,
-          date: selectedDate.value,
-          time_slot: currentSlot.value,
-          count: wantToPlayEditCount.value,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'venue,date,time_slot'
-        })
-
-      if (error) throw error
+      // 使用公共函数更新想踢数量
+      await updateWantToPlayCount(venue, date, timeSlot, wantToPlayEditCount.value)
     }
 
     // 关闭弹窗
