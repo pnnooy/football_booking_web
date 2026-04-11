@@ -1480,6 +1480,30 @@ function getWantToPlayCount(venue, date, timeSlot) {
   return wantToPlayData.value[key] || 0
 }
 
+// 获取或生成设备ID（用于用户去重）
+function getDeviceId() {
+  let deviceId = localStorage.getItem('deviceId')
+  if (!deviceId) {
+    deviceId = 'device_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
+    localStorage.setItem('deviceId', deviceId)
+  }
+  return deviceId
+}
+
+// 检查用户是否已经想踢过某个时段
+function hasUserWantToPlay(venue, date, timeSlot) {
+  const deviceId = getDeviceId()
+  const key = `wantToPlay_${venue}_${date}_${timeSlot}_${deviceId}`
+  return localStorage.getItem(key) === 'true'
+}
+
+// 标记用户已想踢某个时段
+function markUserWantToPlay(venue, date, timeSlot) {
+  const deviceId = getDeviceId()
+  const key = `wantToPlay_${venue}_${date}_${timeSlot}_${deviceId}`
+  localStorage.setItem(key, 'true')
+}
+
 // 加载想踢数据（带本地缓存优化）
 async function fetchWantToPlayData(useCacheFirst = true) {
   const cacheKey = `${currentVenue.value}_${selectedDate.value}`
@@ -1570,12 +1594,22 @@ async function updateWantToPlayCacheInBackground() {
 }
 
 // 想踢+1
-function incrementWantToPlay() {
+async function incrementWantToPlay() {
   if (!currentSlot.value) return
 
-  const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
-  const cacheKey = `${currentVenue.value}_${selectedDate.value}`
-  const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
+  const venue = currentVenue.value
+  const date = selectedDate.value
+  const timeSlot = currentSlot.value
+
+  // 检查用户是否已经想踢过
+  if (hasUserWantToPlay(venue, date, timeSlot)) {
+    alert('您已经表达过想踢的意愿啦！')
+    return
+  }
+
+  const key = getWantToPlayKey(venue, date, timeSlot)
+  const cacheKey = `${venue}_${date}`
+  const localStorageCacheKey = `wantToPlay_${venue}_${date}`
   
   // 确保内存缓存中有数据
   if (!wantToPlayCache.value[cacheKey]) {
@@ -1585,35 +1619,46 @@ function incrementWantToPlay() {
   const currentCount = wantToPlayCache.value[cacheKey][key] || 0
   const newCount = currentCount + 1
 
-  // 先更新内存缓存（立即显示，不等待网络）
+  // 先更新内存缓存（立即显示）
   wantToPlayCache.value[cacheKey][key] = newCount
-  showSlotInfoModal.value = false
+  // 先不关闭弹窗，让用户看到成功状态
   
   // 更新本地缓存
   localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
-  localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
+  localStorage.setItem(`wantToPlayTime_${venue}_${date}`, Date.now().toString())
 
-  // 后台异步更新数据库，不阻塞用户
-  supabase
-    .from('want_to_play')
-    .upsert({
-      venue: currentVenue.value,
-      date: selectedDate.value,
-      time_slot: currentSlot.value,
-      count: newCount,
-      updated_at: new Date().toISOString()
-    }, {
-      onConflict: 'venue,date,time_slot'
-    })
-    .then(({ error }) => {
-      if (error) {
-        console.error('想踢+1数据库更新失败:', error)
-        // 后台失败不影响用户体验
-      }
-    })
-    .catch(error => {
-      console.error('想踢+1数据库更新异常:', error)
-    })
+  try {
+    // 同步更新数据库
+    const { error } = await supabase
+      .from('want_to_play')
+      .upsert({
+        venue,
+        date,
+        time_slot: timeSlot,
+        count: newCount,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'venue,date,time_slot'
+      })
+
+    if (error) throw error
+
+    // 标记用户已想踢
+    markUserWantToPlay(venue, date, timeSlot)
+    
+    // 成功后关闭弹窗
+    showSlotInfoModal.value = false
+    alert('已记录您想踢的意愿！')
+
+  } catch (error) {
+    console.error('想踢+1失败:', error)
+    
+    // 回滚本地缓存
+    wantToPlayCache.value[cacheKey][key] = currentCount
+    localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
+    
+    alert('操作失败，请重试')
+  }
 }
 
 // 管理员保存想踢数量
@@ -2096,6 +2141,20 @@ function subscribeToBookings() {
 
       // 重新获取所有场地数据
       fetchVenueSlots()
+    })
+    .subscribe()
+
+  // 订阅 want_to_play 表变化（想踢数据实时更新）
+  supabase
+    .channel('want_to_play')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'want_to_play'
+    }, (payload) => {
+      console.log('收到 want_to_play 实时更新:', payload)
+      // 强制从数据库刷新想踢数据
+      fetchWantToPlayData(false)
     })
     .subscribe()
 }
