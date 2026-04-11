@@ -33,7 +33,7 @@
                   v-for="(date, index) in dateList"
                   :key="index"
                   :class="['date-btn', { active: selectedDate === date.fullDate }]"
-                  @click="selectedDate = date.fullDate"
+                  @click="selectDate(date.fullDate)"
                 >
                   <span class="date-day">{{ date.day }}</span>
                   <span class="date-week">{{ date.week }}</span>
@@ -83,6 +83,10 @@
                       <span v-if="getHourlyWeather(selectedDate, hour).pop > 15" class="slot-weather-pop">
                         💧{{ getHourlyWeather(selectedDate, hour).pop }}%
                       </span>
+                    </div>
+                    <!-- 想踢数量显示 -->
+                    <div v-if="getWantToPlayCount(currentVenue, selectedDate, hour) > 0" class="want-to-play-badge">
+                      ⚽ 想踢×{{ getWantToPlayCount(currentVenue, selectedDate, hour) }}
                     </div>
                   </div>
                   <span class="time-status">{{ getSlotStatus(hour) }}</span>
@@ -551,6 +555,52 @@
         </div>
       </div>
     </div>
+
+    <!-- 时段信息弹窗 -->
+    <div v-if="showSlotInfoModal" class="modal-overlay" @click="showSlotInfoModal = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>时段信息</h3>
+          <button class="modal-close" @click="showSlotInfoModal = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-card">
+            <div class="info-item">
+              <span class="info-label">时段</span>
+              <span class="info-value">{{ currentSlot }}:00 - {{ currentSlot + 1 }}:00</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">状态</span>
+              <span class="info-value" :style="{ color: isBooked(currentSlot) ? 'var(--error)' : 'var(--success)' }">
+                {{ isBooked(currentSlot) ? '已预约' : (isExpired(currentSlot) ? '已过期' : '可预约') }}
+              </span>
+            </div>
+            <div v-if="getRemark(currentSlot)" class="info-item">
+              <span class="info-label">备注</span>
+              <span class="info-value">{{ getRemark(currentSlot) }}</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">想踢</span>
+              <div v-if="isAdminLoggedIn" style="display: flex; align-items: center; gap: 12px;">
+                <input type="number" v-model.number="wantToPlayEditCount" min="0" style="width: 80px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;" />
+                <span style="color: var(--text-secondary);">人</span>
+              </div>
+              <div v-else style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 18px; font-weight: 600; color: var(--accent);">
+                  {{ getWantToPlayCount(currentVenue, selectedDate, currentSlot) }}
+                </span>
+                <span style="color: var(--text-secondary);">人想踢</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-secondary" @click="showSlotInfoModal = false">关闭</button>
+          <button v-if="isAdminLoggedIn" class="modal-btn modal-btn-primary" @click="saveWantToPlayCount">保存</button>
+          <button v-else class="modal-btn modal-btn-primary" @click="incrementWantToPlay">想踢+1</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -620,6 +670,12 @@ const isAdminLoggedIn = ref(false)
 const showAdminLoginModal = ref(false)
 const adminEmail = ref('')
 const adminPassword = ref('')
+
+// 想踢功能相关
+const showSlotInfoModal = ref(false)
+const currentSlot = ref(null)
+const wantToPlayData = ref({})
+const wantToPlayEditCount = ref(0)
 
 // 加载页背景样式
 const loadingBgStyle = computed(() => {
@@ -1065,6 +1121,12 @@ function getWeatherForDate(dateStr) {
   return weatherData.value[dateStr] || null
 }
 
+// 选择日期
+function selectDate(date) {
+  selectedDate.value = date
+  fetchWantToPlayData()
+}
+
 // 计算未来8天的日期列表
 const dateList = computed(() => {
   const dates = []
@@ -1165,7 +1227,8 @@ onMounted(async () => {
   Promise.all([
     fetchBookings(),
     fetchVenueSlots(),
-    subscribeToBookings()
+    subscribeToBookings(),
+    fetchWantToPlayData()
   ]).then(() => {
     isLoading.value = false
   })
@@ -1324,20 +1387,128 @@ function hasDateBooking(date) {
   return venueBookings.some(b => b.status === 'booked')
 }
 
+// 获取想踢数据的 key
+function getWantToPlayKey(venue, date, timeSlot) {
+  return `${venue}-${date}-${timeSlot}`
+}
+
+// 获取某个时段的想踢数量
+function getWantToPlayCount(venue, date, timeSlot) {
+  const key = getWantToPlayKey(venue, date, timeSlot)
+  return wantToPlayData.value[key] || 0
+}
+
+// 加载想踢数据
+async function fetchWantToPlayData() {
+  try {
+    const { data, error } = await supabase
+      .from('want_to_play')
+      .select('*')
+      .eq('venue', currentVenue.value)
+      .eq('date', selectedDate.value)
+
+    if (error) throw error
+
+    const newData = {}
+    data.forEach(item => {
+      const key = getWantToPlayKey(item.venue, item.date, item.time_slot)
+      newData[key] = item.count
+    })
+    wantToPlayData.value = newData
+  } catch (error) {
+    console.error('获取想踢数据失败:', error)
+  }
+}
+
+// 想踢+1
+async function incrementWantToPlay() {
+  if (!currentSlot.value) return
+
+  const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
+  const currentCount = wantToPlayData.value[key] || 0
+  const newCount = currentCount + 1
+
+  try {
+    // 先更新本地
+    wantToPlayData.value[key] = newCount
+
+    // 再更新数据库
+    const { error } = await supabase
+      .from('want_to_play')
+      .upsert({
+        venue: currentVenue.value,
+        date: selectedDate.value,
+        time_slot: currentSlot.value,
+        count: newCount,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'venue,date,time_slot'
+      })
+
+    if (error) throw error
+  } catch (error) {
+    console.error('想踢+1失败:', error)
+    // 回滚本地
+    wantToPlayData.value[key] = currentCount
+    alert('操作失败，请重试')
+  }
+}
+
+// 管理员保存想踢数量
+async function saveWantToPlayCount() {
+  if (!currentSlot.value) return
+
+  const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
+
+  try {
+    const { error } = await supabase
+      .from('want_to_play')
+      .upsert({
+        venue: currentVenue.value,
+        date: selectedDate.value,
+        time_slot: currentSlot.value,
+        count: wantToPlayEditCount.value,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'venue,date,time_slot'
+      })
+
+    if (error) throw error
+
+    // 更新本地
+    wantToPlayData.value[key] = wantToPlayEditCount.value
+    showSlotInfoModal.value = false
+  } catch (error) {
+    console.error('保存想踢数量失败:', error)
+    alert('保存失败，请重试')
+  }
+}
+
 // 处理时段点击
 function handleSlotClick(hour) {
-  if (!isAdminLoggedIn.value) {
-    return
-  }
+  // 先设置当前时段
+  currentSlot.value = hour
   
-  if (isExpired(hour)) {
-    return
-  }
-
-  // 确认操作
-  const action = isBooked(hour) ? '取消预约' : '预约'
-  if (confirm(`确认${action}该时段（${hour}:00 - ${hour + 1}:00）？`)) {
-    toggleBooking(hour)
+  // 获取想踢数量用于编辑
+  wantToPlayEditCount.value = getWantToPlayCount(currentVenue.value, selectedDate.value, hour)
+  
+  if (isAdminLoggedIn.value) {
+    if (isExpired(hour)) {
+      // 管理员点击过期时段也只显示信息
+      showSlotInfoModal.value = true
+      return
+    }
+    // 管理员：确认预约/取消
+    const action = isBooked(hour) ? '取消预约' : '预约'
+    if (confirm(`确认${action}该时段（${hour}:00 - ${hour + 1}:00）？`)) {
+      toggleBooking(hour)
+    } else {
+      // 如果取消确认，显示时段信息
+      showSlotInfoModal.value = true
+    }
+  } else {
+    // 普通用户：显示时段信息
+    showSlotInfoModal.value = true
   }
 }
 
@@ -1998,6 +2169,19 @@ button:active {
   font-size: 11px;
   color: #93c5fd;
   font-weight: 500;
+}
+
+.want-to-play-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  padding: 4px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
 }
 
 /* ============ 时间网格 ============ */
