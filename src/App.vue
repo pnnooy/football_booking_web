@@ -601,6 +601,52 @@
         </div>
       </div>
     </div>
+
+    <!-- 管理员时段管理弹窗 -->
+    <div v-if="showAdminSlotModal" class="modal-overlay" @click="showAdminSlotModal = false">
+      <div class="modal-content" @click.stop>
+        <div class="modal-header">
+          <h3>时段管理</h3>
+          <button class="modal-close" @click="showAdminSlotModal = false">✕</button>
+        </div>
+        <div class="modal-body">
+          <div class="info-card">
+            <div class="info-item">
+              <span class="info-label">时段</span>
+              <span class="info-value">{{ currentSlot }}:00 - {{ currentSlot + 1 }}:00</span>
+            </div>
+            <div class="info-item">
+              <span class="info-label">状态</span>
+              <div style="display: flex; gap: 10px;">
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                  <input type="radio" v-model="adminSlotStatus" value="available" />
+                  <span>可预约</span>
+                </label>
+                <label style="display: flex; align-items: center; gap: 5px; cursor: pointer;">
+                  <input type="radio" v-model="adminSlotStatus" value="booked" />
+                  <span>已预约</span>
+                </label>
+              </div>
+            </div>
+            <div class="info-item">
+              <span class="info-label">备注</span>
+              <textarea v-model="adminSlotRemark" class="modal-textarea" placeholder="添加备注..." style="margin-top: 8px;"></textarea>
+            </div>
+            <div class="info-item">
+              <span class="info-label">想踢人数</span>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <input type="number" v-model.number="wantToPlayEditCount" min="0" style="width: 100px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 14px;" />
+                <span style="color: var(--text-secondary);">人</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-secondary" @click="showAdminSlotModal = false">取消</button>
+          <button class="modal-btn modal-btn-primary" @click="saveAdminSlotChanges">保存</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -673,9 +719,12 @@ const adminPassword = ref('')
 
 // 想踢功能相关
 const showSlotInfoModal = ref(false)
+const showAdminSlotModal = ref(false)
 const currentSlot = ref(null)
 const wantToPlayData = ref({})
 const wantToPlayEditCount = ref(0)
+const adminSlotRemark = ref('')
+const adminSlotStatus = ref('')
 
 // 加载页背景样式
 const loadingBgStyle = computed(() => {
@@ -1493,22 +1542,96 @@ function handleSlotClick(hour) {
   wantToPlayEditCount.value = getWantToPlayCount(currentVenue.value, selectedDate.value, hour)
   
   if (isAdminLoggedIn.value) {
-    if (isExpired(hour)) {
-      // 管理员点击过期时段也只显示信息
-      showSlotInfoModal.value = true
-      return
-    }
-    // 管理员：确认预约/取消
-    const action = isBooked(hour) ? '取消预约' : '预约'
-    if (confirm(`确认${action}该时段（${hour}:00 - ${hour + 1}:00）？`)) {
-      toggleBooking(hour)
-    } else {
-      // 如果取消确认，显示时段信息
-      showSlotInfoModal.value = true
-    }
+    // 管理员：打开整合的管理弹窗
+    adminSlotStatus.value = isBooked(hour) ? 'booked' : 'available'
+    adminSlotRemark.value = getRemark(hour) || ''
+    showAdminSlotModal.value = true
   } else {
     // 普通用户：显示时段信息
     showSlotInfoModal.value = true
+  }
+}
+
+// 保存管理员时段修改
+async function saveAdminSlotChanges() {
+  if (!currentSlot.value) return
+
+  try {
+    // 1. 处理预约状态
+    const isCurrentlyBooked = isBooked(currentSlot.value)
+    const newStatusBooked = adminSlotStatus.value === 'booked'
+    
+    if (newStatusBooked !== isCurrentlyBooked) {
+      await toggleBooking(currentSlot.value)
+    }
+
+    // 2. 处理备注
+    const currentRemark = getRemark(currentSlot.value) || ''
+    if (adminSlotRemark.value !== currentRemark) {
+      // 先找到该时段的 booking 记录
+      const venueBookings = getBookingsForVenueAndDate(currentVenue.value, selectedDate.value)
+      const existingBooking = venueBookings.find(b => b.time_slot === currentSlot.value)
+
+      if (existingBooking && adminSlotRemark.value) {
+        // 更新备注
+        const { error } = await supabase
+          .from('bookings')
+          .update({ remark: adminSlotRemark.value })
+          .eq('id', existingBooking.id)
+        
+        if (error) throw error
+      } else if (existingBooking && !adminSlotRemark.value) {
+        // 删除备注（设为空）
+        const { error } = await supabase
+          .from('bookings')
+          .update({ remark: null })
+          .eq('id', existingBooking.id)
+        
+        if (error) throw error
+      } else if (!existingBooking && adminSlotRemark.value) {
+        // 如果没有 booking 记录但有备注，需要先创建 booking
+        const { error } = await supabase
+          .from('bookings')
+          .insert({
+            venue: currentVenue.value,
+            date: selectedDate.value,
+            time_slot: currentSlot.value,
+            status: newStatusBooked ? 'booked' : 'available',
+            remark: adminSlotRemark.value
+          })
+        
+        if (error) throw error
+      }
+      
+      // 重新获取 bookings 数据
+      await fetchBookings()
+    }
+
+    // 3. 处理想踢数量
+    const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
+    if (wantToPlayEditCount.value !== (wantToPlayData.value[key] || 0)) {
+      const { error } = await supabase
+        .from('want_to_play')
+        .upsert({
+          venue: currentVenue.value,
+          date: selectedDate.value,
+          time_slot: currentSlot.value,
+          count: wantToPlayEditCount.value,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'venue,date,time_slot'
+        })
+
+      if (error) throw error
+      wantToPlayData.value[key] = wantToPlayEditCount.value
+    }
+
+    // 关闭弹窗
+    showAdminSlotModal.value = false
+    alert('保存成功！')
+  } catch (error) {
+    console.error('保存失败:', error)
+    alert('保存失败，请重试')
   }
 }
 
