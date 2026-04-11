@@ -571,13 +571,13 @@
             </div>
             <div class="info-item">
               <span class="info-label">状态</span>
-              <span class="info-value" :style="{ color: isBooked(currentSlot) ? 'var(--error)' : 'var(--success)' }">
-                {{ isBooked(currentSlot) ? '已预约' : (isExpired(currentSlot) ? '已过期' : '可预约') }}
+              <span class="info-value" :style="{ color: slotInfoStatus === '已预约' ? 'var(--error)' : (slotInfoStatus === '已过期' ? 'var(--text-secondary)' : 'var(--success)') }">
+                {{ slotInfoStatus }}
               </span>
             </div>
-            <div v-if="getRemark(currentSlot)" class="info-item">
+            <div v-if="slotInfoRemark" class="info-item">
               <span class="info-label">备注</span>
-              <span class="info-value">{{ getRemark(currentSlot) }}</span>
+              <span class="info-value">{{ slotInfoRemark }}</span>
             </div>
             <div class="info-item">
               <span class="info-label">想踢</span>
@@ -725,6 +725,8 @@ const wantToPlayData = ref({})
 const wantToPlayEditCount = ref(0)
 const adminSlotRemark = ref('')
 const adminSlotStatus = ref('')
+const slotInfoStatus = ref('')
+const slotInfoRemark = ref('')
 
 // 加载页背景样式
 const loadingBgStyle = computed(() => {
@@ -1298,7 +1300,9 @@ function hasAnyModalOpen() {
          showLiabilityModal.value ||
          showHelpModal.value ||
          showAdminLoginModal.value ||
-         showFeedbackListModal.value
+         showFeedbackListModal.value ||
+         showSlotInfoModal.value ||
+         showAdminSlotModal.value
 }
 
 // 关闭所有弹窗
@@ -1314,6 +1318,8 @@ function closeAllModals() {
   showHelpModal.value = false
   showAdminLoginModal.value = false
   showFeedbackListModal.value = false
+  showSlotInfoModal.value = false
+  showAdminSlotModal.value = false
 }
 
 // 处理键盘事件（ESC 键）
@@ -1547,7 +1553,9 @@ function handleSlotClick(hour) {
     adminSlotRemark.value = getRemark(hour) || ''
     showAdminSlotModal.value = true
   } else {
-    // 普通用户：显示时段信息
+    // 普通用户：显示时段信息，先保存状态
+    slotInfoStatus.value = isBooked(hour) ? '已预约' : (isExpired(hour) ? '已过期' : '可预约')
+    slotInfoRemark.value = getRemark(hour) || ''
     showSlotInfoModal.value = true
   }
 }
