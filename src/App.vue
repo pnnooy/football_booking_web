@@ -84,12 +84,14 @@
                         💧{{ getHourlyWeather(selectedDate, hour).pop }}%
                       </span>
                     </div>
+                  </div>
+                  <div class="time-slot-right">
                     <!-- 想踢数量显示 -->
                     <div v-if="currentWantToPlay[hour] > 0" class="want-to-play-badge">
                       ⚽ 想踢×{{ currentWantToPlay[hour] }}
                     </div>
+                    <span class="time-status">{{ getSlotStatus(hour) }}</span>
                   </div>
-                  <span class="time-status">{{ getSlotStatus(hour) }}</span>
                 </div>
               </div>
             </div>
@@ -2489,13 +2491,20 @@ button:active {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
   color: #fff;
   background: linear-gradient(135deg, #f59e0b, #d97706);
-  padding: 4px 10px;
-  border-radius: 12px;
+  padding: 3px 8px;
+  border-radius: 10px;
   white-space: nowrap;
+  height: fit-content;
+}
+
+.time-slot-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* ============ 时间网格 ============ */
