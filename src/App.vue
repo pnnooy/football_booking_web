@@ -1143,12 +1143,10 @@ function hasDateBooking(date) {
 // 处理时段点击
 function handleSlotClick(hour) {
   if (!isAdminLoggedIn.value) {
-    alert('请先登录管理员账号')
     return
   }
   
   if (isExpired(hour)) {
-    alert('已过时的时段无法操作')
     return
   }
 
@@ -1201,7 +1199,6 @@ let pressTimer = null
 
 function startPress(hour) {
   if (!isAdminLoggedIn.value) {
-    alert('请先登录管理员账号')
     return
   }
   if (isExpired(hour)) return
