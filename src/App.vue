@@ -1541,7 +1541,7 @@ async function updateWantToPlayCacheInBackground() {
 }
 
 // 想踢+1
-async function incrementWantToPlay() {
+function incrementWantToPlay() {
   if (!currentSlot.value) return
 
   const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
@@ -1549,37 +1549,35 @@ async function incrementWantToPlay() {
   const newCount = currentCount + 1
   const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
 
-  try {
-    // 先更新本地（立即显示，不等待网络）
-    wantToPlayData.value[key] = newCount
-    showSlotInfoModal.value = false
-    
-    // 更新本地缓存
-    localStorage.setItem(cacheKey, JSON.stringify(wantToPlayData.value))
-    localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
+  // 先更新本地（立即显示，不等待网络）
+  wantToPlayData.value[key] = newCount
+  showSlotInfoModal.value = false
+  
+  // 更新本地缓存
+  localStorage.setItem(cacheKey, JSON.stringify(wantToPlayData.value))
+  localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
 
-    // 后台异步更新数据库
-    supabase
-      .from('want_to_play')
-      .upsert({
-        venue: currentVenue.value,
-        date: selectedDate.value,
-        time_slot: currentSlot.value,
-        count: newCount,
-        updated_at: new Date().toISOString()
-      }, {
-        onConflict: 'venue,date,time_slot'
-      })
-      .catch(error => {
+  // 后台异步更新数据库，不阻塞用户
+  supabase
+    .from('want_to_play')
+    .upsert({
+      venue: currentVenue.value,
+      date: selectedDate.value,
+      time_slot: currentSlot.value,
+      count: newCount,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'venue,date,time_slot'
+    })
+    .then(({ error }) => {
+      if (error) {
         console.error('想踢+1数据库更新失败:', error)
         // 后台失败不影响用户体验
-      })
-  } catch (error) {
-    console.error('想踢+1失败:', error)
-    // 回滚本地
-    wantToPlayData.value[key] = currentCount
-    alert('操作失败，请重试')
-  }
+      }
+    })
+    .catch(error => {
+      console.error('想踢+1数据库更新异常:', error)
+    })
 }
 
 // 管理员保存想踢数量
