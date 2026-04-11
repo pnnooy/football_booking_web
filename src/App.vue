@@ -14,7 +14,7 @@
           <header class="page-header">
             <div class="page-header-content">
               <h1>{{ venues[0].name }}</h1>
-              <button v-if="isAdminLoggedIn" class="share-btn-fixed" @click="shareSchedule">
+              <button class="share-btn-fixed" @click="shareSchedule">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-external-link-icon lucide-external-link icon-share">
                   <path d="M15 3h6v6"></path>
                   <path d="M10 14 21 3"></path>
@@ -472,7 +472,7 @@
           <div class="help-section">
             <h4>设置功能</h4>
             <p>1. <strong>主题配色</strong>：支持浅灰蓝-低调版和深蓝灰-柔和版两种主题</p>
-            <p>2. <strong>分享功能</strong>：需登录管理员账号，可将预约情况导出为图片分享</p>
+            <p>2. <strong>分享功能</strong>：所有用户均可使用，可将预约情况导出为图片分享</p>
             <p>3. <strong>清除缓存</strong>：清除天气缓存或所有本地数据</p>
           </div>
           <div class="help-section">
