@@ -212,13 +212,22 @@
                   </div>
                   <span class="settings-arrow">›</span>
                 </div>
-                <div v-else class="settings-item" @click="handleAdminLogout">
-                  <div class="settings-text">
-                    <div class="settings-item-title">退出登录</div>
-                    <div class="settings-item-desc">当前已登录</div>
+                <template v-else>
+                  <div class="settings-item" @click="showFeedbackListModal = true; fetchFeedbackList()">
+                    <div class="settings-text">
+                      <div class="settings-item-title">反馈管理</div>
+                      <div class="settings-item-desc">查看所有用户反馈</div>
+                    </div>
+                    <span class="settings-arrow">›</span>
                   </div>
-                  <span class="settings-arrow">›</span>
-                </div>
+                  <div class="settings-item" @click="handleAdminLogout">
+                    <div class="settings-text">
+                      <div class="settings-item-title">退出登录</div>
+                      <div class="settings-item-desc">当前已登录</div>
+                    </div>
+                    <span class="settings-arrow">›</span>
+                  </div>
+                </template>
               </div>
             </div>
 
@@ -321,10 +330,10 @@
           <button class="modal-close" @click="showFeedbackModal = false">✕</button>
         </div>
         <div class="modal-body">
-          <textarea class="modal-textarea" placeholder="请描述您遇到的问题..."></textarea>
+          <textarea v-model="feedbackContent" class="modal-textarea" placeholder="请描述您遇到的问题..."></textarea>
         </div>
         <div class="modal-footer">
-          <button class="modal-btn modal-btn-secondary" @click="showFeedbackModal = false">取消</button>
+          <button class="modal-btn modal-btn-secondary" @click="showFeedbackModal = false; feedbackContent = ''">取消</button>
           <button class="modal-btn modal-btn-primary" @click="submitFeedback">提交</button>
         </div>
       </div>
@@ -338,10 +347,10 @@
           <button class="modal-close" @click="showSuggestionModal = false">✕</button>
         </div>
         <div class="modal-body">
-          <textarea class="modal-textarea" placeholder="请描述您的建议..."></textarea>
+          <textarea v-model="feedbackContent" class="modal-textarea" placeholder="请描述您的建议..."></textarea>
         </div>
         <div class="modal-footer">
-          <button class="modal-btn modal-btn-secondary" @click="showSuggestionModal = false">取消</button>
+          <button class="modal-btn modal-btn-secondary" @click="showSuggestionModal = false; feedbackContent = ''">取消</button>
           <button class="modal-btn modal-btn-primary" @click="submitSuggestion">提交</button>
         </div>
       </div>
@@ -505,6 +514,43 @@
         </div>
       </div>
     </div>
+
+    <!-- 反馈管理弹窗 -->
+    <div v-if="showFeedbackListModal" class="modal-overlay" @click="showFeedbackListModal = false">
+      <div class="modal-content modal-content-large" @click.stop>
+        <div class="modal-header">
+          <h3>反馈管理</h3>
+          <button class="modal-close" @click="showFeedbackListModal = false">✕</button>
+        </div>
+        <div class="modal-body help-content" style="max-height: 60vh; overflow-y: auto;">
+          <div v-if="feedbackList.length === 0" style="text-align: center; padding: 40px; color: var(--text-secondary);">
+            暂无反馈
+          </div>
+          <div v-else class="help-section" v-for="item in feedbackList" :key="item.id" style="border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 12px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+              <span style="background: var(--accent-light); color: var(--accent); padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                {{ item.type === 'feedback' ? '问题反馈' : '功能建议' }}
+              </span>
+              <span v-if="item.status === 'resolved'" style="background: var(--success-light); color: var(--success); padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600;">
+                已处理
+              </span>
+            </div>
+            <p style="margin-bottom: 8px; white-space: pre-wrap; word-break: break-word;">{{ item.content }}</p>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="color: var(--text-secondary); font-size: 12px;">
+                {{ new Date(item.created_at).toLocaleString('zh-CN') }}
+              </span>
+              <button v-if="item.status !== 'resolved'" style="background: var(--accent); color: white; border: none; padding: 6px 16px; border-radius: 16px; font-size: 12px; cursor: pointer;" @click="markFeedbackResolved(item.id)">
+                标记已处理
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="modal-btn modal-btn-primary" @click="showFeedbackListModal = false">关闭</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -567,6 +613,7 @@ const showLiabilityModal = ref(false)
 const showFeedbackModal = ref(false)
 const showSuggestionModal = ref(false)
 const showHelpModal = ref(false)
+const showFeedbackListModal = ref(false)
 
 // 管理员登录相关
 const isAdminLoggedIn = ref(false)
@@ -776,16 +823,92 @@ function clearBrowsingHistory() {
   }
 }
 
+// 反馈数据
+const feedbackList = ref([])
+const feedbackContent = ref('')
+
 // 提交反馈
-function submitFeedback() {
-  alert('感谢您的反馈！我们会尽快处理。')
-  showFeedbackModal.value = false
+async function submitFeedback() {
+  if (!feedbackContent.value.trim()) {
+    alert('请输入反馈内容')
+    return
+  }
+
+  try {
+    const { error } = await supabase
+      .from('feedback')
+      .insert({
+        type: 'feedback',
+        content: feedbackContent.value.trim()
+      })
+
+    if (error) throw error
+
+    alert('感谢您的反馈！我们会尽快处理。')
+    showFeedbackModal.value = false
+    feedbackContent.value = ''
+  } catch (error) {
+    console.error('提交反馈失败:', error)
+    alert('提交失败，请重试')
+  }
 }
 
 // 提交建议
-function submitSuggestion() {
-  alert('感谢您的建议！我们会认真考虑。')
-  showSuggestionModal.value = false
+async function submitSuggestion() {
+  if (!feedbackContent.value.trim()) {
+    alert('请输入建议内容')
+    return
+  }
+
+  try {
+    const { error } = await supabase
+      .from('feedback')
+      .insert({
+        type: 'suggestion',
+        content: feedbackContent.value.trim()
+      })
+
+    if (error) throw error
+
+    alert('感谢您的建议！我们会认真考虑。')
+    showSuggestionModal.value = false
+    feedbackContent.value = ''
+  } catch (error) {
+    console.error('提交建议失败:', error)
+    alert('提交失败，请重试')
+  }
+}
+
+// 获取反馈列表（仅管理员）
+async function fetchFeedbackList() {
+  if (!isAdminLoggedIn.value) return
+
+  try {
+    const { data, error } = await supabase
+      .from('feedback')
+      .select('*')
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    feedbackList.value = data || []
+  } catch (error) {
+    console.error('获取反馈失败:', error)
+  }
+}
+
+// 标记反馈为已处理
+async function markFeedbackResolved(id) {
+  try {
+    const { error } = await supabase
+      .from('feedback')
+      .update({ status: 'resolved' })
+      .eq('id', id)
+
+    if (error) throw error
+    fetchFeedbackList()
+  } catch (error) {
+    console.error('更新失败:', error)
+  }
 }
 
 // 管理员登录
