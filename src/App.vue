@@ -715,12 +715,19 @@ const adminPassword = ref('')
 const showSlotInfoModal = ref(false)
 const showAdminSlotModal = ref(false)
 const currentSlot = ref(null)
-const wantToPlayData = ref({})
+// wantToPlayCache: { "venue_date": { "timeSlot": count } }
+const wantToPlayCache = ref({})
 const wantToPlayEditCount = ref(0)
 const adminSlotRemark = ref('')
 const adminSlotStatus = ref('')
 const slotInfoStatus = ref('')
 const slotInfoRemark = ref('')
+
+// 获取当前日期的想踢数据（从缓存中）
+const wantToPlayData = computed(() => {
+  const cacheKey = `${currentVenue.value}_${selectedDate.value}`
+  return wantToPlayCache.value[cacheKey] || {}
+})
 
 // 缓存当前日期的想踢数据，加速访问
 const currentWantToPlay = computed(() => {
@@ -1475,18 +1482,26 @@ function getWantToPlayCount(venue, date, timeSlot) {
 
 // 加载想踢数据（带本地缓存优化）
 async function fetchWantToPlayData(useCacheFirst = true) {
-  const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
-  const cacheTimeKey = `wantToPlayTime_${currentVenue.value}_${selectedDate.value}`
+  const cacheKey = `${currentVenue.value}_${selectedDate.value}`
+  const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
+  const localStorageCacheTimeKey = `wantToPlayTime_${currentVenue.value}_${selectedDate.value}`
   
-  // 先尝试使用缓存
+  // 先尝试使用内存缓存
+  if (wantToPlayCache.value[cacheKey]) {
+    // 内存中有数据，直接使用，后台异步更新
+    updateWantToPlayCacheInBackground()
+    return
+  }
+  
+  // 再尝试使用本地缓存
   if (useCacheFirst) {
-    const cachedData = localStorage.getItem(cacheKey)
-    const cachedTime = localStorage.getItem(cacheTimeKey)
+    const cachedData = localStorage.getItem(localStorageCacheKey)
+    const cachedTime = localStorage.getItem(localStorageCacheTimeKey)
     const now = Date.now()
     
     if (cachedData && cachedTime && (now - parseInt(cachedTime)) < 5 * 60 * 1000) {
-      // 5分钟内的缓存直接使用
-      wantToPlayData.value = JSON.parse(cachedData)
+      // 5分钟内的本地缓存，先放到内存缓存，然后后台更新
+      wantToPlayCache.value[cacheKey] = JSON.parse(cachedData)
       // 后台异步更新
       updateWantToPlayCacheInBackground()
       return
@@ -1508,17 +1523,19 @@ async function fetchWantToPlayData(useCacheFirst = true) {
       const key = getWantToPlayKey(item.venue, item.date, item.time_slot)
       newData[key] = item.count
     })
-    wantToPlayData.value = newData
+    
+    // 保存到内存缓存
+    wantToPlayCache.value[cacheKey] = newData
     
     // 保存到本地缓存
-    localStorage.setItem(cacheKey, JSON.stringify(newData))
-    localStorage.setItem(cacheTimeKey, Date.now().toString())
+    localStorage.setItem(localStorageCacheKey, JSON.stringify(newData))
+    localStorage.setItem(localStorageCacheTimeKey, Date.now().toString())
   } catch (error) {
     console.error('获取想踢数据失败:', error)
     // 如果网络失败，尝试使用旧缓存
-    const cachedData = localStorage.getItem(cacheKey)
+    const cachedData = localStorage.getItem(localStorageCacheKey)
     if (cachedData) {
-      wantToPlayData.value = JSON.parse(cachedData)
+      wantToPlayCache.value[cacheKey] = JSON.parse(cachedData)
     }
   }
 }
@@ -1539,11 +1556,13 @@ async function updateWantToPlayCacheInBackground() {
       const key = getWantToPlayKey(item.venue, item.date, item.time_slot)
       newData[key] = item.count
     })
-    wantToPlayData.value = newData
     
-    // 更新缓存
-    const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
-    localStorage.setItem(cacheKey, JSON.stringify(newData))
+    // 更新内存缓存
+    const cacheKey = `${currentVenue.value}_${selectedDate.value}`
+    wantToPlayCache.value[cacheKey] = newData
+    
+    // 更新本地缓存
+    localStorage.setItem(`wantToPlay_${currentVenue.value}_${selectedDate.value}`, JSON.stringify(newData))
     localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
   } catch (error) {
     console.error('后台更新想踢数据失败:', error)
@@ -1555,16 +1574,23 @@ function incrementWantToPlay() {
   if (!currentSlot.value) return
 
   const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
-  const currentCount = wantToPlayData.value[key] || 0
+  const cacheKey = `${currentVenue.value}_${selectedDate.value}`
+  const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
+  
+  // 确保内存缓存中有数据
+  if (!wantToPlayCache.value[cacheKey]) {
+    wantToPlayCache.value[cacheKey] = {}
+  }
+  
+  const currentCount = wantToPlayCache.value[cacheKey][key] || 0
   const newCount = currentCount + 1
-  const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
 
-  // 先更新本地（立即显示，不等待网络）
-  wantToPlayData.value[key] = newCount
+  // 先更新内存缓存（立即显示，不等待网络）
+  wantToPlayCache.value[cacheKey][key] = newCount
   showSlotInfoModal.value = false
   
   // 更新本地缓存
-  localStorage.setItem(cacheKey, JSON.stringify(wantToPlayData.value))
+  localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
   localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
 
   // 后台异步更新数据库，不阻塞用户
@@ -1595,8 +1621,23 @@ async function saveWantToPlayCount() {
   if (!currentSlot.value) return
 
   const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
+  const cacheKey = `${currentVenue.value}_${selectedDate.value}`
+  const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
 
   try {
+    // 确保内存缓存中有数据
+    if (!wantToPlayCache.value[cacheKey]) {
+      wantToPlayCache.value[cacheKey] = {}
+    }
+    
+    // 先更新内存缓存
+    wantToPlayCache.value[cacheKey][key] = wantToPlayEditCount.value
+    
+    // 更新本地缓存
+    localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
+    localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
+
+    // 同步更新数据库
     const { error } = await supabase
       .from('want_to_play')
       .upsert({
@@ -1611,8 +1652,7 @@ async function saveWantToPlayCount() {
 
     if (error) throw error
 
-    // 更新本地
-    wantToPlayData.value[key] = wantToPlayEditCount.value
+    // 关闭弹窗
     showSlotInfoModal.value = false
   } catch (error) {
     console.error('保存想踢数量失败:', error)
@@ -1698,14 +1738,22 @@ async function saveAdminSlotChanges() {
 
     // 3. 处理想踢数量
     const key = getWantToPlayKey(currentVenue.value, selectedDate.value, currentSlot.value)
-    const cacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
+    const cacheKey = `${currentVenue.value}_${selectedDate.value}`
+    const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
     
-    if (wantToPlayEditCount.value !== (wantToPlayData.value[key] || 0)) {
-      // 先更新本地
-      wantToPlayData.value[key] = wantToPlayEditCount.value
+    // 确保内存缓存中有数据
+    if (!wantToPlayCache.value[cacheKey]) {
+      wantToPlayCache.value[cacheKey] = {}
+    }
+    
+    const currentCount = wantToPlayCache.value[cacheKey][key] || 0
+    
+    if (wantToPlayEditCount.value !== currentCount) {
+      // 先更新内存缓存
+      wantToPlayCache.value[cacheKey][key] = wantToPlayEditCount.value
       
       // 更新本地缓存
-      localStorage.setItem(cacheKey, JSON.stringify(wantToPlayData.value))
+      localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
       localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
 
       // 同步更新数据库
