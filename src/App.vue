@@ -569,12 +569,6 @@
               <span class="info-label">时段</span>
               <span class="info-value">{{ currentSlot }}:00 - {{ currentSlot + 1 }}:00</span>
             </div>
-            <div class="info-item">
-              <span class="info-label">状态</span>
-              <span class="info-value" :style="{ color: slotInfoStatus === '已预约' ? 'var(--error)' : (slotInfoStatus === '已过期' ? 'var(--text-secondary)' : 'var(--success)') }">
-                {{ slotInfoStatus }}
-              </span>
-            </div>
             <div v-if="slotInfoRemark" class="info-item">
               <span class="info-label">备注</span>
               <span class="info-value">{{ slotInfoRemark }}</span>
