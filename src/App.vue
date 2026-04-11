@@ -715,28 +715,20 @@ const adminPassword = ref('')
 const showSlotInfoModal = ref(false)
 const showAdminSlotModal = ref(false)
 const currentSlot = ref(null)
-// wantToPlayCache: { "venue_date": { "timeSlot": count } }
+// wantToPlayCache: { "venue_date": { "fullKey": count } }
 const wantToPlayCache = ref({})
+// simpleWantToPlayCache: { "venue_date": { hour: count } } - 简化缓存，加速访问
+const simpleWantToPlayCache = ref({})
 const wantToPlayEditCount = ref(0)
 const adminSlotRemark = ref('')
 const adminSlotStatus = ref('')
 const slotInfoStatus = ref('')
 const slotInfoRemark = ref('')
 
-// 获取当前日期的想踢数据（从缓存中）
-const wantToPlayData = computed(() => {
-  const cacheKey = `${currentVenue.value}_${selectedDate.value}`
-  return wantToPlayCache.value[cacheKey] || {}
-})
-
-// 缓存当前日期的想踢数据，加速访问
+// 获取当前日期的简化想踢数据（直接用 hour 作为 key，毫秒级访问）
 const currentWantToPlay = computed(() => {
-  const result = {}
-  timeSlots.forEach(hour => {
-    const key = getWantToPlayKey(currentVenue.value, selectedDate.value, hour)
-    result[hour] = wantToPlayData.value[key] || 0
-  })
-  return result
+  const cacheKey = `${currentVenue.value}_${selectedDate.value}`
+  return simpleWantToPlayCache.value[cacheKey] || {}
 })
 
 // 加载页背景样式
@@ -1486,9 +1478,18 @@ async function fetchWantToPlayData(useCacheFirst = true) {
   const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
   const localStorageCacheTimeKey = `wantToPlayTime_${currentVenue.value}_${selectedDate.value}`
   
-  // 先尝试使用内存缓存
-  if (wantToPlayCache.value[cacheKey]) {
+  // 先尝试使用简化内存缓存（最快）
+  if (simpleWantToPlayCache.value[cacheKey]) {
     // 内存中有数据，直接使用，后台异步更新
+    updateWantToPlayCacheInBackground()
+    return
+  }
+  
+  // 再尝试使用完整内存缓存
+  if (wantToPlayCache.value[cacheKey]) {
+    // 有完整缓存，构建简化缓存
+    buildSimpleCacheFromFull(cacheKey)
+    // 后台异步更新
     updateWantToPlayCacheInBackground()
     return
   }
@@ -1500,8 +1501,10 @@ async function fetchWantToPlayData(useCacheFirst = true) {
     const now = Date.now()
     
     if (cachedData && cachedTime && (now - parseInt(cachedTime)) < 5 * 60 * 1000) {
-      // 5分钟内的本地缓存，先放到内存缓存，然后后台更新
+      // 5分钟内的本地缓存，先放到内存缓存
       wantToPlayCache.value[cacheKey] = JSON.parse(cachedData)
+      // 构建简化缓存
+      buildSimpleCacheFromFull(cacheKey)
       // 后台异步更新
       updateWantToPlayCacheInBackground()
       return
@@ -1519,13 +1522,17 @@ async function fetchWantToPlayData(useCacheFirst = true) {
     if (error) throw error
 
     const newData = {}
+    const simpleData = {}
     data.forEach(item => {
       const key = getWantToPlayKey(item.venue, item.date, item.time_slot)
       newData[key] = item.count
+      simpleData[item.time_slot] = item.count
     })
     
-    // 保存到内存缓存
+    // 保存到完整内存缓存
     wantToPlayCache.value[cacheKey] = newData
+    // 保存到简化内存缓存
+    simpleWantToPlayCache.value[cacheKey] = simpleData
     
     // 保存到本地缓存
     localStorage.setItem(localStorageCacheKey, JSON.stringify(newData))
@@ -1536,8 +1543,22 @@ async function fetchWantToPlayData(useCacheFirst = true) {
     const cachedData = localStorage.getItem(localStorageCacheKey)
     if (cachedData) {
       wantToPlayCache.value[cacheKey] = JSON.parse(cachedData)
+      buildSimpleCacheFromFull(cacheKey)
     }
   }
+}
+
+// 从完整缓存构建简化缓存
+function buildSimpleCacheFromFull(cacheKey) {
+  const fullData = wantToPlayCache.value[cacheKey]
+  if (!fullData) return
+  
+  const simpleData = {}
+  timeSlots.forEach(hour => {
+    const fullKey = getWantToPlayKey(currentVenue.value, selectedDate.value, hour)
+    simpleData[hour] = fullData[fullKey] || 0
+  })
+  simpleWantToPlayCache.value[cacheKey] = simpleData
 }
 
 // 后台更新想踢数据缓存
@@ -1552,14 +1573,17 @@ async function updateWantToPlayCacheInBackground() {
     if (error) throw error
 
     const newData = {}
+    const simpleData = {}
     data.forEach(item => {
       const key = getWantToPlayKey(item.venue, item.date, item.time_slot)
       newData[key] = item.count
+      simpleData[item.time_slot] = item.count
     })
     
     // 更新内存缓存
     const cacheKey = `${currentVenue.value}_${selectedDate.value}`
     wantToPlayCache.value[cacheKey] = newData
+    simpleWantToPlayCache.value[cacheKey] = simpleData
     
     // 更新本地缓存
     localStorage.setItem(`wantToPlay_${currentVenue.value}_${selectedDate.value}`, JSON.stringify(newData))
@@ -1581,12 +1605,16 @@ function incrementWantToPlay() {
   if (!wantToPlayCache.value[cacheKey]) {
     wantToPlayCache.value[cacheKey] = {}
   }
+  if (!simpleWantToPlayCache.value[cacheKey]) {
+    simpleWantToPlayCache.value[cacheKey] = {}
+  }
   
   const currentCount = wantToPlayCache.value[cacheKey][key] || 0
   const newCount = currentCount + 1
 
   // 先更新内存缓存（立即显示，不等待网络）
   wantToPlayCache.value[cacheKey][key] = newCount
+  simpleWantToPlayCache.value[cacheKey][currentSlot.value] = newCount
   showSlotInfoModal.value = false
   
   // 更新本地缓存
@@ -1629,9 +1657,13 @@ async function saveWantToPlayCount() {
     if (!wantToPlayCache.value[cacheKey]) {
       wantToPlayCache.value[cacheKey] = {}
     }
+    if (!simpleWantToPlayCache.value[cacheKey]) {
+      simpleWantToPlayCache.value[cacheKey] = {}
+    }
     
     // 先更新内存缓存
     wantToPlayCache.value[cacheKey][key] = wantToPlayEditCount.value
+    simpleWantToPlayCache.value[cacheKey][currentSlot.value] = wantToPlayEditCount.value
     
     // 更新本地缓存
     localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
@@ -1745,12 +1777,16 @@ async function saveAdminSlotChanges() {
     if (!wantToPlayCache.value[cacheKey]) {
       wantToPlayCache.value[cacheKey] = {}
     }
+    if (!simpleWantToPlayCache.value[cacheKey]) {
+      simpleWantToPlayCache.value[cacheKey] = {}
+    }
     
     const currentCount = wantToPlayCache.value[cacheKey][key] || 0
     
     if (wantToPlayEditCount.value !== currentCount) {
-      // 先更新内存缓存
+      // 先更新内存缓存（两个缓存都更新）
       wantToPlayCache.value[cacheKey][key] = wantToPlayEditCount.value
+      simpleWantToPlayCache.value[cacheKey][currentSlot.value] = wantToPlayEditCount.value
       
       // 更新本地缓存
       localStorage.setItem(localStorageCacheKey, JSON.stringify(wantToPlayCache.value[cacheKey]))
