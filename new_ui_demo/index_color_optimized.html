@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>配色优化 Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        /* ============ 主题变量 - 8个配色方案 ============ */
+        /* 方案1：浅灰蓝 - 柔和版 */
+        .theme-light-blue-soft {
+            --bg-primary: #fafbfc;
+            --bg-secondary: #ffffff;
+            --bg-card: #f0f3f7;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --accent: #3182ce;
+            --accent-hover: #2b6cb0;
+            --accent-light: #ebf4ff;
+            --success: #2f855a;
+            --success-light: #f0fff4;
+            --warning: #c05621;
+            --danger: #c53030;
+            --border: #e2e8f0;
+            --border-light: #edf2f7;
+        }
+
+        /* 方案2：浅灰蓝 - 低调版 */
+        .theme-light-blue-mute {
+            --bg-primary: #f7fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #edf2f7;
+            --text-primary: #2d3748;
+            --text-secondary: #718096;
+            --accent: #2b6cb0;
+            --accent-hover: #2c5282;
+            --accent-light: #e6f0fa;
+            --success: #276749;
+            --success-light: #e8f5e9;
+            --warning: #b45309;
+            --danger: #b91c1c;
+            --border: #e2e8f0;
+            --border-light: #edf2f7;
+        }
+
+        /* 方案3：薄荷绿 - 清新版 */
+        .theme-mint {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --bg-card: #ecfdf5;
+            --text-primary: #064e3b;
+            --text-secondary: #059669;
+            --accent: #059669;
+            --accent-hover: #047857;
+            --accent-light: #d1fae5;
+            --success: #047857;
+            --success-light: #d1fae5;
+            --warning: #92400e;
+            --danger: #991b1b;
+            --border: #a7f3d0;
+            --border-light: #d1fae5;
+        }
+
+        /* 方案4：薰衣草紫 - 柔和版 */
+        .theme-lavender {
+            --bg-primary: #faf5ff;
+            --bg-secondary: #ffffff;
+            --bg-card: #f3e8ff;
+            --text-primary: #581c87;
+            --text-secondary: #7e22ce;
+            --accent: #7e22ce;
+            --accent-hover: #6d28d9;
+            --accent-light: #ede9fe;
+            --success: #166534;
+            --success-light: #dcfce7;
+            --warning: #b45309;
+            --danger: #b91c1c;
+            --border: #ddd6fe;
+            --border-light: #ede9fe;
+        }
+
+        /* 方案5：深蓝灰 - 柔和版 */
+        .theme-dark-blue-soft {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-card: #334155;
+            --text-primary: #e2e8f0;
+            --text-secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --accent-light: #1e3a5f;
+            --success: #059669;
+            --success-light: #064e3b;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --border: #475569;
+            --border-light: #334155;
+        }
+
+        /* 方案6：深蓝灰 - 低调版 */
+        .theme-dark-blue-mute {
+            --bg-primary: #020617;
+            --bg-secondary: #0f172a;
+            --bg-card: #1e293b;
+            --text-primary: #e2e8f0;
+            --text-secondary: #64748b;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #1e293b;
+            --success: #047857;
+            --success-light: #064e3b;
+            --warning: #b45309;
+            --danger: #b91c1c;
+            --border: #334155;
+            --border-light: #1e293b;
+        }
+
+        /* 方案7：暗夜紫 - 高级版 */
+        .theme-dark-purple {
+            --bg-primary: #020617;
+            --bg-secondary: #1e1b4b;
+            --bg-card: #312e81;
+            --text-primary: #e0e7ff;
+            --text-secondary: #a5b4fc;
+            --accent: #6366f1;
+            --accent-hover: #4f46e5;
+            --accent-light: #312e81;
+            --success: #059669;
+            --success-light: #064e3b;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --border: #4338ca;
+            --border-light: #312e81;
+        }
+
+        /* 方案8：暗夜绿 - 高级版 */
+        .theme-dark-green {
+            --bg-primary: #020617;
+            --bg-secondary: #064e3b;
+            --bg-card: #065f46;
+            --text-primary: #ecfdf5;
+            --text-secondary: #6ee7b7;
+            --accent: #10b981;
+            --accent-hover: #059669;
+            --accent-light: #064e3b;
+            --success: #059669;
+            --success-light: #064e3b;
+            --warning: #d97706;
+            --danger: #dc2626;
+            --border: #047857;
+            --border-light: #064e3b;
+        }
+
+        .app {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ============ 页面容器 ============ */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: 70px;
+        }
+
+        .page-content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ============ 主题选择器 ============ */
+        .theme-selector {
+            position: fixed;
+            top: 12px;
+            right: 12px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .theme-switch-btn {
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            font-weight: 700;
+            border: 2px solid transparent;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .theme-switch-btn.active {
+            border-color: #fff;
+            box-shadow: 0 0 0 2px rgba(255,255,255,0.8), 0 2px 8px rgba(0,0,0,0.2);
+        }
+
+        /* ============ 页面头部 ============ */
+        .page-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            position: relative;
+            background: var(--bg-primary);
+            z-index: 10;
+        }
+
+        .page-header h1 {
+            font-size: 22px;
+            font-weight: 600;
+        }
+
+        .settings-header {
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-primary);
+        }
+
+        .settings-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        /* ============ 分享按钮 ============ */
+        .share-btn-fixed {
+            position: absolute;
+            top: 50%;
+            right: 70px;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            background: var(--bg-card);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        /* ============ 场地页面 ============ */
+        .venue-page {
+            min-height: 100%;
+        }
+
+        .main-content {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .venue-title {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .venue-title h2 {
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        /* ============ 日期导航 ============ */
+        .date-nav {
+            margin-bottom: 24px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .dates-scroll {
+            display: flex;
+            gap: 10px;
+            padding: 5px 0;
+        }
+
+        .date-btn {
+            flex-shrink: 0;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: 14px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 78px;
+            min-height: 100px;
+        }
+
+        .date-btn.active {
+            background: var(--accent);
+            border-color: transparent;
+            color: #fff;
+        }
+
+        .date-day {
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        .date-week {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 4px;
+        }
+
+        .date-btn.active .date-week {
+            color: rgba(255, 255, 255, 0.85);
+        }
+
+        .date-status {
+            font-size: 10px;
+            padding: 2px 10px;
+            border-radius: 12px;
+            margin-top: 8px;
+            font-weight: 600;
+            background: var(--bg-card);
+            color: var(--text-secondary);
+        }
+
+        .date-status.has-booking {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .date-btn.active .date-status.no-booking {
+            background: rgba(255, 255, 255, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* ============ 时间网格 ============ */
+        .time-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        .time-slot-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .time-slot {
+            padding: 18px 20px;
+            border-radius: 14px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid transparent;
+        }
+
+        .time-label {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .time-status {
+            font-size: 14px;
+            padding: 6px 16px;
+            border-radius: 18px;
+            background: rgba(0, 0, 0, 0.06);
+            font-weight: 600;
+        }
+
+        /* ============ 时间槽配色 - 柔和版 ============ */
+        .time-slot.available {
+            background: var(--accent-light);
+            color: var(--accent);
+            border: 2px solid var(--accent);
+        }
+
+        .time-slot.available .time-status {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .time-slot.unavailable {
+            background: var(--bg-card);
+            opacity: 0.6;
+        }
+
+        .time-slot.booked {
+            background: var(--success-light);
+            color: var(--success);
+            border: 2px solid var(--success);
+        }
+
+        .time-slot.booked .time-status {
+            background: var(--success);
+            color: #fff;
+        }
+
+        .time-slot.expired {
+            background: var(--bg-secondary);
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        /* ============ 设置页面 ============ */
+        .settings-page {
+            min-height: 100%;
+        }
+
+        .settings-body {
+            padding: 20px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .settings-section {
+            margin-bottom: 32px;
+        }
+
+        .settings-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 12px;
+            padding-left: 4px;
+        }
+
+        .section-content {
+            background: var(--bg-secondary);
+            border-radius: 16px;
+            padding: 4px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        .theme-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            padding: 12px;
+        }
+
+        .theme-item {
+            aspect-ratio: 1;
+            border-radius: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 3px solid transparent;
+            position: relative;
+        }
+
+        .theme-item.active {
+            border-color: var(--accent);
+        }
+
+        .theme-check {
+            font-size: 24px;
+            color: #fff;
+            font-weight: bold;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .theme-name {
+            position: absolute;
+            bottom: 8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 10px;
+            font-weight: 700;
+            white-space: nowrap;
+            background: rgba(0,0,0,0.6);
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 8px;
+        }
+
+        .settings-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 16px;
+            background: transparent;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+        }
+
+        .settings-text {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .settings-item-title {
+            font-size: 16px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .settings-item-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .settings-arrow {
+            font-size: 22px;
+            color: var(--text-secondary);
+            margin-left: 8px;
+            font-weight: 300;
+            flex-shrink: 0;
+        }
+
+        /* ============ 底栏导航 ============ */
+        .tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            z-index: 100;
+        }
+
+        .tab-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 0;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        .tab-icon {
+            font-size: 26px;
+            margin-bottom: 4px;
+            opacity: 0.5;
+        }
+
+        .tab-label {
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0.5;
+        }
+
+        .tab-item.active .tab-icon,
+        .tab-item.active .tab-label {
+            opacity: 1;
+            color: var(--accent);
+        }
+
+        /* ============ 页面切换 ============ */
+        .venue-page,
+        .settings-page {
+            display: none;
+        }
+
+        .venue-page.active,
+        .settings-page.active {
+            display: block;
+        }
+
+        /* ============ 提示信息 ============ */
+        .demo-hint {
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body class="theme-light-blue-soft">
+    <div class="app" id="app">
+        <!-- 主题选择器 -->
+        <div class="theme-selector">
+            <button class="theme-switch-btn active" style="background: #3182ce; color: #fff;" onclick="changeTheme('theme-light-blue-soft')" title="浅灰蓝-柔和">1</button>
+            <button class="theme-switch-btn" style="background: #2b6cb0; color: #fff;" onclick="changeTheme('theme-light-blue-mute')" title="浅灰蓝-低调">2</button>
+            <button class="theme-switch-btn" style="background: #059669; color: #fff;" onclick="changeTheme('theme-mint')" title="薄荷绿">3</button>
+            <button class="theme-switch-btn" style="background: #7e22ce; color: #fff;" onclick="changeTheme('theme-lavender')" title="薰衣草紫">4</button>
+            <button class="theme-switch-btn" style="background: #3b82f6; color: #fff;" onclick="changeTheme('theme-dark-blue-soft')" title="深蓝灰-柔和">5</button>
+            <button class="theme-switch-btn" style="background: #2563eb; color: #fff;" onclick="changeTheme('theme-dark-blue-mute')" title="深蓝灰-低调">6</button>
+            <button class="theme-switch-btn" style="background: #6366f1; color: #fff;" onclick="changeTheme('theme-dark-purple')" title="暗夜紫">7</button>
+            <button class="theme-switch-btn" style="background: #10b981; color: #fff;" onclick="changeTheme('theme-dark-green')" title="暗夜绿">8</button>
+        </div>
+
+        <!-- Demo提示 -->
+        <div class="demo-hint">
+            🎨 配色优化 Demo - 点击右侧数字切换8种配色
+        </div>
+
+        <div class="main-container">
+            <div class="page-content">
+                <!-- 场地情况页面 -->
+                <div id="venue-page" class="venue-page active">
+                    <header class="page-header">
+                        <h1>场地预约情况</h1>
+                        <button class="share-btn-fixed">📤</button>
+                    </header>
+
+                    <main class="main-content">
+                        <div class="venue-title">
+                            <h2>笼式足球场</h2>
+                        </div>
+
+                        <div class="date-nav">
+                            <div class="dates-scroll">
+                                <button class="date-btn active">
+                                    <span class="date-day">10</span>
+                                    <span class="date-week">周五</span>
+                                    <span class="date-status has-booking">有</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">11</span>
+                                    <span class="date-week">周六</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">12</span>
+                                    <span class="date-week">周日</span>
+                                    <span class="date-status has-booking">有</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">13</span>
+                                    <span class="date-week">周一</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">14</span>
+                                    <span class="date-week">周二</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">15</span>
+                                    <span class="date-week">周三</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                                <button class="date-btn">
+                                    <span class="date-day">16</span>
+                                    <span class="date-week">周四</span>
+                                    <span class="date-status no-booking">无</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="time-grid">
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot available">
+                                    <span class="time-label">14:00 - 15:00</span>
+                                    <span class="time-status">可预约</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot booked">
+                                    <span class="time-label">15:00 - 16:00</span>
+                                    <span class="time-status">已预约</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot available">
+                                    <span class="time-label">16:00 - 17:00</span>
+                                    <span class="time-status">可预约</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot available">
+                                    <span class="time-label">17:00 - 18:00</span>
+                                    <span class="time-status">可预约</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot unavailable">
+                                    <span class="time-label">18:00 - 19:00</span>
+                                    <span class="time-status">不可选</span>
+                                </div>
+                            </div>
+                            <div class="time-slot-wrapper">
+                                <div class="time-slot expired">
+                                    <span class="time-label">19:00 - 20:00</span>
+                                    <span class="time-status">已过期</span>
+                                </div>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+
+                <!-- 设置页面 -->
+                <div id="settings-page" class="settings-page">
+                    <header class="settings-header">
+                        <h2>设置</h2>
+                    </header>
+
+                    <div class="settings-body">
+                        <div class="settings-section">
+                            <div class="section-title">主题配色</div>
+                            <div class="theme-grid">
+                                <div class="theme-item active" style="background: #3182ce;" onclick="changeTheme('theme-light-blue-soft')">
+                                    <div class="theme-check" id="check-1">✓</div>
+                                    <span class="theme-name">浅蓝柔</span>
+                                </div>
+                                <div class="theme-item" style="background: #2b6cb0;" onclick="changeTheme('theme-light-blue-mute')">
+                                    <div class="theme-check" id="check-2" style="display: none;">✓</div>
+                                    <span class="theme-name">浅蓝低</span>
+                                </div>
+                                <div class="theme-item" style="background: #059669;" onclick="changeTheme('theme-mint')">
+                                    <div class="theme-check" id="check-3" style="display: none;">✓</div>
+                                    <span class="theme-name">薄荷绿</span>
+                                </div>
+                                <div class="theme-item" style="background: #7e22ce;" onclick="changeTheme('theme-lavender')">
+                                    <div class="theme-check" id="check-4" style="display: none;">✓</div>
+                                    <span class="theme-name">薰衣草</span>
+                                </div>
+                                <div class="theme-item" style="background: #3b82f6;" onclick="changeTheme('theme-dark-blue-soft')">
+                                    <div class="theme-check" id="check-5" style="display: none;">✓</div>
+                                    <span class="theme-name">深蓝柔</span>
+                                </div>
+                                <div class="theme-item" style="background: #2563eb;" onclick="changeTheme('theme-dark-blue-mute')">
+                                    <div class="theme-check" id="check-6" style="display: none;">✓</div>
+                                    <span class="theme-name">深蓝低</span>
+                                </div>
+                                <div class="theme-item" style="background: #6366f1;" onclick="changeTheme('theme-dark-purple')">
+                                    <div class="theme-check" id="check-7" style="display: none;">✓</div>
+                                    <span class="theme-name">暗夜紫</span>
+                                </div>
+                                <div class="theme-item" style="background: #10b981;" onclick="changeTheme('theme-dark-green')">
+                                    <div class="theme-check" id="check-8" style="display: none;">✓</div>
+                                    <span class="theme-name">暗夜绿</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <div class="section-title">外观设置</div>
+                            <div class="section-content">
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">更换背景</div>
+                                        <div class="settings-item-desc">选择图片背景或纯色背景</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <div class="section-title">反馈与帮助</div>
+                            <div class="section-content">
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">问题反馈</div>
+                                        <div class="settings-item-desc">报告Bug或遇到的问题</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">功能建议</div>
+                                        <div class="settings-item-desc">提出新功能或改进建议</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">使用帮助</div>
+                                        <div class="settings-item-desc">查看使用说明和常见问题</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <div class="section-title">缓存管理</div>
+                            <div class="section-content">
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">清除天气缓存</div>
+                                        <div class="settings-item-desc">清除已缓存的天气数据</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">清除所有本地数据</div>
+                                        <div class="settings-item-desc">清除所有缓存和本地存储</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-section">
+                            <div class="section-title">项目信息</div>
+                            <div class="section-content">
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">项目信息</div>
+                                        <div class="settings-item-desc">版本、更新日志等</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                                <div class="settings-item">
+                                    <div class="settings-text">
+                                        <div class="settings-item-title">开发者信息</div>
+                                        <div class="settings-item-desc">作者、仓库、协议等</div>
+                                    </div>
+                                    <span class="settings-arrow">›</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底栏导航 -->
+            <nav class="tab-bar">
+                <button class="tab-item active" onclick="switchPage('venue')">
+                    <span class="tab-icon">⚽</span>
+                    <span class="tab-label">场地情况</span>
+                </button>
+                <button class="tab-item" onclick="switchPage('settings')">
+                    <span class="tab-icon">⚙️</span>
+                    <span class="tab-label">设置</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <script>
+        let currentTheme = 'theme-light-blue-soft';
+        let currentPage = 'venue';
+        
+        const themeList = [
+            'theme-light-blue-soft',
+            'theme-light-blue-mute',
+            'theme-mint',
+            'theme-lavender',
+            'theme-dark-blue-soft',
+            'theme-dark-blue-mute',
+            'theme-dark-purple',
+            'theme-dark-green'
+        ];
+
+        function changeTheme(themeName) {
+            document.body.className = themeName;
+            currentTheme = themeName;
+
+            const themeIndex = themeList.indexOf(themeName);
+            
+            document.querySelectorAll('.theme-switch-btn').forEach((btn, index) => {
+                btn.classList.remove('active');
+                if (index === themeIndex) {
+                    btn.classList.add('active');
+                }
+            });
+
+            for (let i = 1; i <= 8; i++) {
+                const check = document.getElementById('check-' + i);
+                if (check) {
+                    check.style.display = 'none';
+                }
+            }
+            const checkId = 'check-' + (themeIndex + 1);
+            const checkEl = document.getElementById(checkId);
+            if (checkEl) {
+                checkEl.style.display = 'block';
+            }
+
+            document.querySelectorAll('.theme-grid .theme-item').forEach((item, index) => {
+                item.classList.remove('active');
+                if (index === themeIndex) {
+                    item.classList.add('active');
+                }
+            });
+        }
+
+        function switchPage(page) {
+            currentPage = page;
+
+            document.getElementById('venue-page').classList.remove('active');
+            document.getElementById('settings-page').classList.remove('active');
+            document.getElementById(page + '-page').classList.add('active');
+
+            document.querySelectorAll('.tab-item').forEach((item, index) => {
+                item.classList.remove('active');
+                if ((page === 'venue' && index === 0) || (page === 'settings' && index === 1)) {
+                    item.classList.add('active');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
