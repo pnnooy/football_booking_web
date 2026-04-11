@@ -201,6 +201,28 @@
               </div>
             </div>
 
+            <!-- 第六组：安全与隐私 -->
+            <div class="settings-section">
+              <div class="section-title">安全与隐私</div>
+              <div class="section-content">
+                <div class="settings-item" @click="clearBrowsingHistory">
+                  <div class="settings-text">
+                    <div class="settings-item-title">清除浏览记录</div>
+                    <div class="settings-item-desc">清除本地浏览历史</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+
+                <div class="settings-item" @click="showLiabilityModal = true">
+                  <div class="settings-text">
+                    <div class="settings-item-title">责任声明</div>
+                    <div class="settings-item-desc">使用条款、免责声明等</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+
             <!-- 第七组：管理员功能 -->
             <div class="settings-section">
               <div class="section-title">管理员功能</div>
@@ -228,28 +250,6 @@
                     <span class="settings-arrow">›</span>
                   </div>
                 </template>
-              </div>
-            </div>
-
-            <!-- 第六组：安全与隐私 -->
-            <div class="settings-section">
-              <div class="section-title">安全与隐私</div>
-              <div class="section-content">
-                <div class="settings-item" @click="clearBrowsingHistory">
-                  <div class="settings-text">
-                    <div class="settings-item-title">清除浏览记录</div>
-                    <div class="settings-item-desc">清除本地浏览历史</div>
-                  </div>
-                  <span class="settings-arrow">›</span>
-                </div>
-
-                <div class="settings-item" @click="showLiabilityModal = true">
-                  <div class="settings-text">
-                    <div class="settings-item-title">责任声明</div>
-                    <div class="settings-item-desc">使用条款、免责声明等</div>
-                  </div>
-                  <span class="settings-arrow">›</span>
-                </div>
               </div>
             </div>
           </div>
