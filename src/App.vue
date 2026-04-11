@@ -1143,6 +1143,15 @@ onMounted(async () => {
     mediaQuery.addEventListener('change', handleSystemThemeChange)
   }
   
+  // 监听键盘事件（ESC 键）
+  window.addEventListener('keydown', handleKeyDown)
+  
+  // 监听移动端返回键（popstate）
+  window.addEventListener('popstate', handlePopState)
+  
+  // 添加一个初始的历史记录，用于拦截返回键
+  history.pushState(null, '', window.location.href)
+  
   // 应用主题
   applyTheme()
 
@@ -1165,11 +1174,63 @@ onMounted(async () => {
   fetchWeatherData()
 })
 
+// 检查是否有任何弹窗打开
+function hasAnyModalOpen() {
+  return showPasswordModal.value ||
+         showConfirmModal.value ||
+         showRemarkModal.value ||
+         showFeedbackModal.value ||
+         showSuggestionModal.value ||
+         showProjectInfo.value ||
+         showDeveloperInfo.value ||
+         showLiabilityModal.value ||
+         showHelpModal.value ||
+         showAdminLoginModal.value ||
+         showFeedbackListModal.value
+}
+
+// 关闭所有弹窗
+function closeAllModals() {
+  showPasswordModal.value = false
+  showConfirmModal.value = false
+  showRemarkModal.value = false
+  showFeedbackModal.value = false
+  showSuggestionModal.value = false
+  showProjectInfo.value = false
+  showDeveloperInfo.value = false
+  showLiabilityModal.value = false
+  showHelpModal.value = false
+  showAdminLoginModal.value = false
+  showFeedbackListModal.value = false
+}
+
+// 处理键盘事件（ESC 键）
+function handleKeyDown(event) {
+  if ((event.key === 'Escape' || event.keyCode === 27) && hasAnyModalOpen()) {
+    event.preventDefault()
+    event.stopPropagation()
+    closeAllModals()
+  }
+}
+
+// 处理移动端返回键（popstate）
+function handlePopState(event) {
+  if (hasAnyModalOpen()) {
+    event.preventDefault()
+    closeAllModals()
+    // 重新 push state 回来，防止真正的页面后退
+    history.pushState(null, '', window.location.href)
+  }
+}
+
 onUnmounted(() => {
   // 清理系统主题监听
   if (mediaQuery) {
     mediaQuery.removeEventListener('change', handleSystemThemeChange)
   }
+  // 清理键盘事件监听
+  window.removeEventListener('keydown', handleKeyDown)
+  window.removeEventListener('popstate', handlePopState)
 })
 
 // 获取某个场地和日期的预约记录
