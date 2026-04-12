@@ -248,11 +248,12 @@
                   <span class="settings-arrow">›</span>
                 </div>
                 <template v-else>
-                  <div class="settings-item" @click="showFeedbackListModal = true; fetchFeedbackList()">
+                  <div class="settings-item" :class="{ 'feedback-unresolved': hasUnresolvedFeedback }" @click="showFeedbackListModal = true; fetchFeedbackList()">
                     <div class="settings-text">
                       <div class="settings-item-title">反馈管理</div>
                       <div class="settings-item-desc">查看所有用户反馈</div>
                     </div>
+                    <span v-if="hasUnresolvedFeedback" class="feedback-badge">新</span>
                     <span class="settings-arrow">›</span>
                   </div>
                   <div class="settings-item" @click="handleAdminLogout">
@@ -1002,6 +1003,11 @@ function clearBrowsingHistory() {
 const feedbackList = ref([])
 const feedbackContent = ref('')
 
+// 计算是否有未处理的反馈
+const hasUnresolvedFeedback = computed(() => {
+  return feedbackList.value.some(item => item.status !== 'resolved')
+})
+
 // 提交反馈
 async function submitFeedback() {
   if (!feedbackContent.value.trim()) {
@@ -1101,6 +1107,8 @@ async function handleAdminLogin() {
     showAdminLoginModal.value = false
     adminEmail.value = ''
     adminPassword.value = ''
+    // 登录成功后获取反馈列表
+    await fetchFeedbackList()
     alert('登录成功！')
   } catch (error) {
     console.error('登录失败:', error)
@@ -1306,6 +1314,8 @@ onMounted(async () => {
   isAdminLoggedIn.value = !!session
   if (session) {
     localStorage.setItem('isAdminLoggedIn', 'true')
+    // 如果已登录，获取反馈列表
+    await fetchFeedbackList()
   }
   
   // 监听登录状态变化
@@ -2262,6 +2272,22 @@ function subscribeToBookings() {
       fetchWantToPlayData(false)
     })
     .subscribe()
+
+  // 订阅 feedback 表变化（反馈数据实时更新）
+  supabase
+    .channel('feedback')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'feedback'
+    }, (payload) => {
+      console.log('收到 feedback 实时更新:', payload)
+      // 实时更新反馈列表
+      if (isAdminLoggedIn.value) {
+        fetchFeedbackList()
+      }
+    })
+    .subscribe()
 }
 </script>
 
@@ -2883,6 +2909,47 @@ button:active {
   color: var(--accent);
   font-weight: bold;
   flex-shrink: 0;
+}
+
+/* 反馈管理未处理状态样式 */
+.settings-item.feedback-unresolved {
+  background: rgba(239, 68, 68, 0.1);
+  border: 2px solid var(--danger);
+  animation: pulse 2s infinite;
+}
+
+.settings-item.feedback-unresolved .settings-item-title {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.feedback-badge {
+  background: var(--danger);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 12px;
+  margin-right: 4px;
+  animation: badge-pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
+  }
+}
+
+@keyframes badge-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 /* ============ 底栏导航 ============ */
