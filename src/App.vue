@@ -1685,12 +1685,11 @@ async function incrementWantToPlay() {
     // 标记用户已想踢
     markUserWantToPlay(venue, date, timeSlot)
 
-    // 更新初始状态，让按钮切换为取消想踢
-    initialWantToPlayStatus.value = true
-
-    // 显示成功状态片刻，然后重置为idle
+    // 显示成功状态片刻
     wantToPlayButtonState.value = 'success'
     setTimeout(() => {
+      // 成功状态显示完后，再切换按钮状态
+      initialWantToPlayStatus.value = true
       wantToPlayButtonState.value = 'idle'
       wantToPlayRefreshLocked.value = false
     }, 1000)
@@ -1741,12 +1740,11 @@ async function decrementWantToPlay() {
     // 取消用户想踢标记
     unmarkUserWantToPlay(venue, date, timeSlot)
 
-    // 更新初始状态，让按钮切换为想踢+1
-    initialWantToPlayStatus.value = false
-
-    // 显示成功状态片刻，然后重置为idle
+    // 显示成功状态片刻
     wantToPlayButtonState.value = 'success'
     setTimeout(() => {
+      // 成功状态显示完后，再切换按钮状态
+      initialWantToPlayStatus.value = false
       wantToPlayButtonState.value = 'idle'
       wantToPlayRefreshLocked.value = false
     }, 1000)
