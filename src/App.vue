@@ -243,7 +243,7 @@
                 <div v-if="!isAdminLoggedIn" class="settings-item" @click="showAdminLoginModal = true">
                   <div class="settings-text">
                     <div class="settings-item-title">管理员登录</div>
-                    <div class="settings-item-desc">登录后可管理预约</div>
+                    <div class="settings-item-desc">管理员入口</div>
                   </div>
                   <span class="settings-arrow">›</span>
                 </div>
@@ -380,7 +380,7 @@
           <div class="info-card">
             <div class="info-item">
               <span class="info-label">项目介绍</span>
-              <span class="info-value">足球场地预约看板，实时查看场地预约情况，支持天气查询和预约管理</span>
+              <span class="info-value">足球场地预约看板，实时查看场地预约情况，支持实时天气查询、想踢人数登记和分享功能</span>
             </div>
             <div class="info-item">
               <span class="info-label">版本信息</span>
@@ -388,7 +388,13 @@
             </div>
             <div class="info-item">
               <span class="info-label">更新日志</span>
-              <span class="info-value">v1.0.0 - 初始版本发布</span>
+              <span class="info-value">
+                v1.0.0 - 初始版本发布<br>
+                - 支持场地预约状态查看<br>
+                - 集成实时天气查询功能<br>
+                - 支持想踢人数登记功能<br>
+                - 支持预约图片导出分享
+              </span>
             </div>
           </div>
         </div>
@@ -409,7 +415,12 @@
           <div class="info-card">
             <div class="info-item">
               <span class="info-label">作者信息</span>
-              <span class="info-value">pnnooy</span>
+              <span class="info-value">
+                pony<br>
+                <a href="https://github.com/pnnooy" target="_blank" class="info-link">
+                  https://github.com/pnnooy
+                </a>
+              </span>
             </div>
             <div class="info-item">
               <span class="info-label">GitHub仓库</span>
@@ -441,17 +452,20 @@
             <div class="info-section">
               <div class="info-section-title">使用条款</div>
               <div class="info-section-content">
-                1. 本项目仅供学习和交流使用<br>
-                2. 请合理安排预约时间，避免场地浪费<br>
-                3. 预约成功后请按时到场
+                1. 本项目仅供学习交流和个人非商业用途使用<br>
+                2. 请合理安排时间，避免场地资源浪费<br>
+                3. 想踢功能仅用于表达意向，不代表实际预约<br>
+                4. 请勿提交恶意或虚假的反馈和建议<br>
+                5. 该网页仅限本群使用，与其他个人/组织无关
               </div>
             </div>
             <div class="info-section" style="margin-top: 12px;">
               <div class="info-section-title">免责声明</div>
               <div class="info-section-content">
-                1. 场地实际状态以现场为准<br>
-                2. 天气数据仅供参考<br>
-                3. 因使用本项目造成的任何损失，开发者不承担责任
+                1. 数据更新存在延迟，场地实际状态以实际情况为准，本系统数据仅供参考<br>
+                2. 因使用本项目造成的任何直接或间接损失，开发者不承担责任<br>
+                3. 系统可能会因维护、网络问题等原因功能异常<br>
+                4. 用户提交的反馈和建议会被用于产品改进
               </div>
             </div>
           </div>
@@ -472,30 +486,25 @@
         <div class="modal-body help-content">
           <div class="help-section">
             <h4>基本使用</h4>
-            <p>1. <strong>查看预约</strong>：选择日期后，下方会显示该日期的所有时间段预约情况</p>
-            <p>2. <strong>预约场地</strong>：需先登录管理员账号，点击"可预约"的时间段，输入管理员密码即可完成预约</p>
-            <p>3. <strong>取消预约</strong>：需先登录管理员账号，点击"已预约"的时间段，输入密码即可取消</p>
-          </div>
-          <div class="help-section">
-            <h4>天气功能</h4>
-            <p>1. 每个日期上方会显示当天的天气概况</p>
-            <p>2. 每个时间段会显示该时段的天气和降水概率</p>
-            <p>3. 天气数据每小时自动更新</p>
-          </div>
-          <div class="help-section">
-            <h4>设置功能</h4>
-            <p>1. <strong>主题配色</strong>：支持浅灰蓝-低调版和深蓝灰-柔和版两种主题</p>
-            <p>2. <strong>分享功能</strong>：所有用户均可使用，可将预约情况导出为图片分享</p>
-            <p>3. <strong>清除缓存</strong>：清除天气缓存或所有本地数据</p>
+            <p><strong>查看预约</strong>：选择日期即可查看该日期所有时段的预约情况</p>
+            <p><strong>想踢登记</strong>：点击任意时段，在弹出的窗口中点击"想踢+1"即可登记您的意向；再次点击可取消登记</p>
+            <p><strong>日期天气</strong>：每个日期按钮上方会显示当天的天气概况</p>
+            <p><strong>时段天气</strong>：每个时段块内会显示两天内时段的具体天气</p>
+            <p><strong>自动更新</strong>：天气数据每10分钟自动更新一次，您也可以在设置中手动清除天气缓存来强制刷新</p>
+            <p><strong>主题切换</strong>：支持浅色模式、深色模式和跟随系统三种主题</p>
+            <p><strong>分享功能</strong>：点击场地情况页面右上角的分享按钮，可将当前预约情况导出为图片保存或分享</p>
+            <p><strong>反馈建议</strong>：可在设置-反馈与帮助提交您的问题反馈或产品建议</p>
           </div>
           <div class="help-section">
             <h4>常见问题</h4>
-            <p><strong>Q: 为什么显示"暂无数据"？</strong></p>
-            <p>A: 数据每天下午2点左右更新，请稍后再试。</p>
-            <p><strong>Q: 天气数据准确吗？</strong></p>
-            <p>A: 天气数据来自和风天气API，仅供参考。</p>
-            <p><strong>Q: 如何修改管理员密码？</strong></p>
-            <p>A: 在 Supabase 控制台的 Authentication 中修改。</p>
+            <p><strong>Q: 想踢功能有什么用？会帮我预约吗？</strong></p>
+            <p>A: 想踢功能仅用于表达您的意向，方便组织者了解大家的需求，不会自动预约场地，踢球请在群聊内接龙。</p>
+            <p><strong>Q: 我提交的反馈与建议会被看到吗？</strong></p>
+            <p>A: 是的，管理员可以在后台看到所有反馈和建议，我们会认真阅读并考虑。</p>
+            <p><strong>Q: 为什么最后一天的数据在下午2点前显示"不可选"？</strong></p>
+            <p>A: 数据通常在每天下午2点左右更新，请在2点后再查看最新数据。</p>
+            <p><strong>Q: 为什么全部时段都显示可预约？</strong></p>
+            <p>A: 您的网络环境异常，请切换WLAN/移动数据或更换浏览器重试。</p>
           </div>
         </div>
       </div>
@@ -3061,7 +3070,7 @@ button:active {
 }
 
 .modal-body {
-  padding: 24px;
+  padding: 32px;
 }
 
 .modal-textarea {
@@ -3185,15 +3194,15 @@ button:active {
 
 /* ============ 帮助内容样式 ============ */
 .help-content {
-  padding: 4px 4px 4px 4px;
+  padding: 8px 8px 8px 8px;
   max-height: 60vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
 
 .help-section {
-  margin-bottom: 24px;
-  padding: 0 4px;
+  margin-bottom: 28px;
+  padding: 0 8px;
 }
 
 .help-section:last-child {
