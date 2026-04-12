@@ -88,7 +88,14 @@
                   <div class="time-slot-right">
                     <!-- 想踢数量显示 -->
                     <div v-if="currentWantToPlay[hour] > 0" class="want-to-play-badge">
-                      ⚽ 想踢×{{ currentWantToPlay[hour] }}
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" class="want-to-play-icon">
+                        <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                          <path d="M11 4a1 1 0 1 0 2 0a1 1 0 0 0-2 0M3 17l5 1l.75-1.5M14 21v-4l-4-3l1-6"/>
+                          <path d="M6 12V9l5-1l3 3l3 1"/>
+                          <path fill="currentColor" d="M19.5 20a.5.5 0 1 0 0-1a.5.5 0 0 0 0 1"/>
+                        </g>
+                      </svg>
+                      想踢×{{ currentWantToPlay[hour] }}
                     </div>
                     <span class="time-status">{{ getSlotStatus(hour) }}</span>
                   </div>
@@ -738,6 +745,7 @@ const showAdminSlotModal = ref(false)
 const currentSlot = ref(null)
 const wantToPlayButtonState = ref('idle') // 'idle' | 'loading' | 'success'
 const initialWantToPlayStatus = ref(null) // 记录打开弹窗时的用户状态
+const currentUser = ref(null) // 当前登录用户
 // wantToPlayCache: { "venue_date": { "timeSlot": count } }
 const wantToPlayCache = ref({})
 const wantToPlayEditCount = ref(0)
@@ -2593,11 +2601,15 @@ button:active {
   font-size: 11px;
   font-weight: 600;
   color: #fff;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  background: #F98025;
   padding: 3px 8px;
   border-radius: 10px;
   white-space: nowrap;
   height: fit-content;
+}
+
+.want-to-play-icon {
+  flex-shrink: 0;
 }
 
 .time-slot-right {
