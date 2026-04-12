@@ -3061,7 +3061,7 @@ button:active {
 }
 
 .modal-body {
-  padding: 20px;
+  padding: 24px;
 }
 
 .modal-textarea {
@@ -3185,11 +3185,15 @@ button:active {
 
 /* ============ 帮助内容样式 ============ */
 .help-content {
-  padding: 0;
+  padding: 4px 4px 4px 4px;
+  max-height: 60vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .help-section {
   margin-bottom: 24px;
+  padding: 0 4px;
 }
 
 .help-section:last-child {
