@@ -13,7 +13,7 @@
 
 ---
 
-## 📖 目录
+## 目录
 
 - [项目介绍](#项目介绍)
 - [功能特性](#功能特性)
@@ -29,7 +29,7 @@
 
 ---
 
-## 🌟 项目介绍
+## 项目介绍
 
 足球场地预约看板是一个简洁美观的足球场地预约情况实时查看系统，帮助用户快速了解场地预约状态。集成实时天气查询、想踢人数登记、预约分享等功能，为足球爱好者提供便捷的信息服务。
 
@@ -42,7 +42,7 @@
 
 ---
 
-## ✨ 功能特性
+## 功能特性
 
 ### 用户功能
 
@@ -75,7 +75,7 @@
 
 ---
 
-## 🛠️ 技术栈
+## 技术栈
 
 ### 前端技术
 
@@ -99,7 +99,7 @@
 
 ---
 
-## 🚀 快速开始
+## 快速开始
 
 ### 前置要求
 
@@ -139,7 +139,7 @@ npm run preview
 
 ---
 
-## ⚙️ 项目配置
+## 项目配置
 
 ### 环境变量
 
@@ -167,7 +167,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ---
 
-## 🗄️ 数据库结构
+## 数据库结构
 
 ### bookings 表
 
@@ -226,7 +226,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ---
 
-## 📦 部署说明
+## 部署说明
 
 ### Vercel 部署
 
@@ -252,7 +252,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 
 ---
 
-## 📖 使用指南
+## 使用指南
 
 ### 基本使用
 
@@ -285,7 +285,7 @@ A: 您的网络环境异常，请切换WLAN/移动数据或更换浏览器重试
 
 ---
 
-## 📁 项目结构
+## 项目结构
 
 ```
 football_booking_web/
@@ -316,13 +316,13 @@ football_booking_web/
 
 ---
 
-## 📄 许可证
+## 许可证
 
 [MIT License](LICENSE)
 
 ---
 
-## 👨‍💻 开发者信息
+## 开发者信息
 
 ### 作者
 
@@ -333,13 +333,3 @@ football_booking_web/
 ### 项目链接
 
 - 🏠 GitHub 仓库: [github.com/pnnooy/football_booking_web](https://github.com/pnnooy/football_booking_web)
-
----
-
-<div align="center">
-
-**如果这个项目对你有帮助，请给个 ⭐ Star！**
-
-Made with ❤️ by pony
-
-</div>

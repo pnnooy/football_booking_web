@@ -13,7 +13,7 @@
 
 ---
 
-## 📖 Table of Contents
+## Table of Contents
 
 - [Introduction](#introduction)
 - [Features](#features)
@@ -29,7 +29,7 @@
 
 ---
 
-## 🌟 Introduction
+## Introduction
 
 Football Pitch Booking Board is a clean and beautiful real-time football pitch availability viewing system. It helps users quickly understand pitch booking status, with integrated real-time weather queries, "want to play" registration, booking sharing, and more, providing convenient information services for football enthusiasts.
 
@@ -42,7 +42,7 @@ Football Pitch Booking Board is a clean and beautiful real-time football pitch a
 
 ---
 
-## ✨ Features
+## Features
 
 ### User Features
 
@@ -75,7 +75,7 @@ Football Pitch Booking Board is a clean and beautiful real-time football pitch a
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend Technologies
 
@@ -99,7 +99,7 @@ Football Pitch Booking Board is a clean and beautiful real-time football pitch a
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Prerequisites
 
@@ -139,7 +139,7 @@ npm run preview
 
 ---
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -167,7 +167,7 @@ The project has built-in QWeather API, defaulting to Shanghai Minhang District w
 
 ---
 
-## 🗄️ Database Structure
+## Database Structure
 
 ### bookings Table
 
@@ -226,7 +226,7 @@ Want to play registration table.
 
 ---
 
-## 📦 Deployment
+## Deployment
 
 ### Vercel Deployment
 
@@ -252,7 +252,7 @@ Configure Secrets:
 
 ---
 
-## 📖 User Guide
+## User Guide
 
 ### Basic Usage
 
@@ -285,7 +285,7 @@ A: Your network environment is abnormal. Please switch WLAN/mobile data or try a
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 football_booking_web/
@@ -316,13 +316,13 @@ football_booking_web/
 
 ---
 
-## 📄 License
+## License
 
 [MIT License](LICENSE)
 
 ---
 
-## 👨‍💻 Developer Info
+## Developer Info
 
 ### Author
 
@@ -333,13 +333,3 @@ football_booking_web/
 ### Project Links
 
 - 🏠 GitHub Repository: [github.com/pnnooy/football_booking_web](https://github.com/pnnooy/football_booking_web)
-
----
-
-<div align="center">
-
-**If this project helps you, please give a ⭐ Star!**
-
-Made with ❤️ by pony
-
-</div>
