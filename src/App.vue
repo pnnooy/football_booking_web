@@ -153,9 +153,23 @@
               </div>
             </div>
 
-            <!-- 第三组：反馈与帮助 -->
+            <!-- 第二组：帮助 -->
             <div class="settings-section">
-              <div class="section-title">反馈与帮助</div>
+              <div class="section-title">帮助</div>
+              <div class="section-content">
+                <div class="settings-item" @click="showHelpModal = true">
+                  <div class="settings-text">
+                    <div class="settings-item-title">使用帮助</div>
+                    <div class="settings-item-desc">查看使用说明和常见问题</div>
+                  </div>
+                  <span class="settings-arrow">›</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 第三组：反馈与建议 -->
+            <div class="settings-section">
+              <div class="section-title">反馈与建议</div>
               <div class="section-content">
                 <div class="settings-item" @click="showFeedbackModal = true">
                   <div class="settings-text">
@@ -169,14 +183,6 @@
                   <div class="settings-text">
                     <div class="settings-item-title">功能建议</div>
                     <div class="settings-item-desc">提出新功能或改进建议</div>
-                  </div>
-                  <span class="settings-arrow">›</span>
-                </div>
-
-                <div class="settings-item" @click="showHelpModal = true">
-                  <div class="settings-text">
-                    <div class="settings-item-title">使用帮助</div>
-                    <div class="settings-item-desc">查看使用说明和常见问题</div>
                   </div>
                   <span class="settings-arrow">›</span>
                 </div>
