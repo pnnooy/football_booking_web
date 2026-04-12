@@ -26,6 +26,19 @@
 
           <main class="main-content">
 
+            <!-- 预约预览条 -->
+            <div class="booking-preview-bar">
+              <div class="preview-bar-container">
+                <div
+                  v-for="(date, index) in dateList"
+                  :key="index"
+                  :class="['preview-bar-item', hasDateBooking(date.fullDate) ? 'has-booking' : '']"
+                >
+                  <span class="preview-bar-day">{{ getWeekDayChar(date.week) }}</span>
+                </div>
+              </div>
+            </div>
+
             <!-- 日期导航 -->
             <div class="date-nav">
               <div class="dates-scroll">
@@ -1520,6 +1533,20 @@ function hasDateBooking(date) {
   return venueBookings.some(b => b.status === 'booked')
 }
 
+// 获取周几的单个字符
+function getWeekDayChar(weekStr) {
+  const map = {
+    '周日': '日',
+    '周一': '一',
+    '周二': '二',
+    '周三': '三',
+    '周四': '四',
+    '周五': '五',
+    '周六': '六'
+  }
+  return map[weekStr] || weekStr.charAt(weekStr.length - 1)
+}
+
 // 获取想踢数据的 key
 function getWantToPlayKey(venue, date, timeSlot) {
   return `${venue}-${date}-${timeSlot}`
@@ -2502,6 +2529,48 @@ button:active {
   font-size: 18px;
   font-weight: 500;
   color: var(--text-secondary);
+}
+
+/* ============ 预约预览条 ============ */
+.booking-preview-bar {
+  margin-bottom: 24px;
+}
+
+.preview-bar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-secondary);
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.preview-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  background: var(--bg-card);
+}
+
+.preview-bar-item.has-booking {
+  background: var(--success);
+}
+
+.preview-bar-day {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  line-height: 1;
+}
+
+.preview-bar-item.has-booking .preview-bar-day {
+  color: #fff;
 }
 
 /* ============ 日期导航 ============ */
