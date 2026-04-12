@@ -1685,15 +1685,15 @@ async function incrementWantToPlay() {
     // 标记用户已想踢
     markUserWantToPlay(venue, date, timeSlot)
 
-    // 设置为成功状态
-    wantToPlayButtonState.value = 'success'
+    // 更新初始状态，让按钮切换为取消想踢
+    initialWantToPlayStatus.value = true
 
-    // 延迟关闭弹窗，让用户看到成功状态
+    // 显示成功状态片刻，然后重置为idle
+    wantToPlayButtonState.value = 'success'
     setTimeout(() => {
-      showSlotInfoModal.value = false
-      // 弹窗关闭后解锁刷新
+      wantToPlayButtonState.value = 'idle'
       wantToPlayRefreshLocked.value = false
-    }, 1500)
+    }, 1000)
 
   } catch (error) {
     console.error('想踢+1失败:', error)
@@ -1741,15 +1741,15 @@ async function decrementWantToPlay() {
     // 取消用户想踢标记
     unmarkUserWantToPlay(venue, date, timeSlot)
 
-    // 设置为成功状态
-    wantToPlayButtonState.value = 'success'
+    // 更新初始状态，让按钮切换为想踢+1
+    initialWantToPlayStatus.value = false
 
-    // 延迟关闭弹窗，让用户看到成功状态
+    // 显示成功状态片刻，然后重置为idle
+    wantToPlayButtonState.value = 'success'
     setTimeout(() => {
-      showSlotInfoModal.value = false
-      // 弹窗关闭后解锁刷新
+      wantToPlayButtonState.value = 'idle'
       wantToPlayRefreshLocked.value = false
-    }, 1500)
+    }, 1000)
 
   } catch (error) {
     console.error('取消想踢失败:', error)
