@@ -738,7 +738,6 @@ const showAdminSlotModal = ref(false)
 const currentSlot = ref(null)
 const wantToPlayButtonState = ref('idle') // 'idle' | 'loading' | 'success'
 const initialWantToPlayStatus = ref(null) // 记录打开弹窗时的用户状态
-const wantToPlayRefreshLocked = ref(false) // 锁定想踢数据刷新
 // wantToPlayCache: { "venue_date": { "timeSlot": count } }
 const wantToPlayCache = ref({})
 const wantToPlayEditCount = ref(0)
@@ -1330,7 +1329,7 @@ onMounted(async () => {
     fetchBookings(),
     fetchVenueSlots(),
     subscribeToBookings(),
-    fetchWantToPlayData()
+    preloadWantToPlayData()  // ← 预加载未来8天所有想踢数据
   ]).then(() => {
     isLoading.value = false
   })
@@ -1565,16 +1564,19 @@ async function updateWantToPlayCount(venue, date, timeSlot, count) {
   if (error) throw error
 }
 
-// 加载想踢数据（带本地缓存优化）
-async function fetchWantToPlayData(useCacheFirst = true) {
-  const cacheKey = `${currentVenue.value}_${selectedDate.value}`
-  const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${selectedDate.value}`
-  const localStorageCacheTimeKey = `wantToPlayTime_${currentVenue.value}_${selectedDate.value}`
+// 加载想踢数据（带本地缓存优化）- 可指定日期
+async function fetchWantToPlayData(date = null, useCacheFirst = true) {
+  const targetDate = date || selectedDate.value
+  const cacheKey = `${currentVenue.value}_${targetDate}`
+  const localStorageCacheKey = `wantToPlay_${currentVenue.value}_${targetDate}`
+  const localStorageCacheTimeKey = `wantToPlayTime_${currentVenue.value}_${targetDate}`
   
   // 先尝试使用内存缓存
   if (wantToPlayCache.value[cacheKey]) {
     // 内存中有数据，直接使用，后台异步更新
-    updateWantToPlayCacheInBackground()
+    if (!date) { // 只有在加载当前日期时才后台更新
+      updateWantToPlayCacheInBackground(targetDate)
+    }
     return
   }
   
@@ -1587,8 +1589,10 @@ async function fetchWantToPlayData(useCacheFirst = true) {
     if (cachedData && cachedTime && (now - parseInt(cachedTime)) < 5 * 60 * 1000) {
       // 5分钟内的本地缓存，先放到内存缓存，然后后台更新
       wantToPlayCache.value[cacheKey] = JSON.parse(cachedData)
-      // 后台异步更新
-      updateWantToPlayCacheInBackground()
+      // 后台异步更新（仅当前日期）
+      if (!date) {
+        updateWantToPlayCacheInBackground(targetDate)
+      }
       return
     }
   }
@@ -1599,7 +1603,7 @@ async function fetchWantToPlayData(useCacheFirst = true) {
       .from('want_to_play')
       .select('*')
       .eq('venue', currentVenue.value)
-      .eq('date', selectedDate.value)
+      .eq('date', targetDate)
 
     if (error) throw error
 
@@ -1625,14 +1629,34 @@ async function fetchWantToPlayData(useCacheFirst = true) {
   }
 }
 
-// 后台更新想踢数据缓存
-async function updateWantToPlayCacheInBackground() {
+// 预加载未来8天的所有想踢数据
+async function preloadWantToPlayData() {
+  const today = new Date()
+  const preloadPromises = []
+  
+  for (let i = 0; i < 8; i++) {
+    const date = new Date(today)
+    date.setDate(today.getDate() + i)
+    const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`
+    
+    // 预加载，不使用缓存优先，直接从网络加载最新数据
+    preloadPromises.push(fetchWantToPlayData(dateStr, false))
+  }
+  
+  // 并行预加载所有日期
+  await Promise.all(preloadPromises)
+  console.log('未来8天想踢数据预加载完成')
+}
+
+// 后台更新想踢数据缓存 - 可指定日期
+async function updateWantToPlayCacheInBackground(date = null) {
+  const targetDate = date || selectedDate.value
   try {
     const { data, error } = await supabase
       .from('want_to_play')
       .select('*')
       .eq('venue', currentVenue.value)
-      .eq('date', selectedDate.value)
+      .eq('date', targetDate)
 
     if (error) throw error
 
@@ -1643,12 +1667,12 @@ async function updateWantToPlayCacheInBackground() {
     })
     
     // 更新内存缓存
-    const cacheKey = `${currentVenue.value}_${selectedDate.value}`
+    const cacheKey = `${currentVenue.value}_${targetDate}`
     wantToPlayCache.value[cacheKey] = newData
     
     // 更新本地缓存
-    localStorage.setItem(`wantToPlay_${currentVenue.value}_${selectedDate.value}`, JSON.stringify(newData))
-    localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${selectedDate.value}`, Date.now().toString())
+    localStorage.setItem(`wantToPlay_${currentVenue.value}_${targetDate}`, JSON.stringify(newData))
+    localStorage.setItem(`wantToPlayTime_${currentVenue.value}_${targetDate}`, Date.now().toString())
   } catch (error) {
     console.error('后台更新想踢数据失败:', error)
   }
@@ -1673,8 +1697,6 @@ async function incrementWantToPlay() {
   const currentCount = wantToPlayCache.value[cacheKey]?.[key] || 0
   const newCount = currentCount + 1
 
-  // 锁定想踢数据刷新，防止实时更新干扰
-  wantToPlayRefreshLocked.value = true
   // 设置为加载状态
   wantToPlayButtonState.value = 'loading'
 
@@ -1691,7 +1713,6 @@ async function incrementWantToPlay() {
       // 成功状态显示完后，再切换按钮状态
       initialWantToPlayStatus.value = true
       wantToPlayButtonState.value = 'idle'
-      wantToPlayRefreshLocked.value = false
     }, 1000)
 
   } catch (error) {
@@ -1702,9 +1723,8 @@ async function incrementWantToPlay() {
       wantToPlayCache.value[cacheKey][key] = currentCount
     }
     
-    // 重置按钮状态并解锁
+    // 重置按钮状态
     wantToPlayButtonState.value = 'idle'
-    wantToPlayRefreshLocked.value = false
     alert('操作失败，请重试')
   }
 }
@@ -1728,8 +1748,6 @@ async function decrementWantToPlay() {
   const currentCount = wantToPlayCache.value[cacheKey]?.[key] || 0
   const newCount = Math.max(0, currentCount - 1)
 
-  // 锁定想踢数据刷新，防止实时更新干扰
-  wantToPlayRefreshLocked.value = true
   // 设置为加载状态
   wantToPlayButtonState.value = 'loading'
 
@@ -1746,7 +1764,6 @@ async function decrementWantToPlay() {
       // 成功状态显示完后，再切换按钮状态
       initialWantToPlayStatus.value = false
       wantToPlayButtonState.value = 'idle'
-      wantToPlayRefreshLocked.value = false
     }, 1000)
 
   } catch (error) {
@@ -1757,9 +1774,8 @@ async function decrementWantToPlay() {
       wantToPlayCache.value[cacheKey][key] = currentCount
     }
     
-    // 重置按钮状态并解锁
+    // 重置按钮状态
     wantToPlayButtonState.value = 'idle'
-    wantToPlayRefreshLocked.value = false
     alert('操作失败，请重试')
   }
 }
@@ -2224,10 +2240,8 @@ function subscribeToBookings() {
       table: 'want_to_play'
     }, (payload) => {
       console.log('收到 want_to_play 实时更新:', payload)
-      // 如果刷新被锁定（用户正在操作），则跳过
-      if (!wantToPlayRefreshLocked.value) {
-        fetchWantToPlayData(false)
-      }
+      // 实时更新想踢数据
+      fetchWantToPlayData(false)
     })
     .subscribe()
 }
