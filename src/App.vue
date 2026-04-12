@@ -417,6 +417,7 @@
               <span class="info-label">作者信息</span>
               <span class="info-value">
                 pony<br>
+                hanyufei24@sjtu.edu.cn<br>
                 <a href="https://github.com/pnnooy" target="_blank" class="info-link">
                   https://github.com/pnnooy
                 </a>
