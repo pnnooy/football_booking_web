@@ -594,22 +594,24 @@
           <button class="modal-btn modal-btn-secondary" @click="showSlotInfoModal = false">关闭</button>
           <button v-if="isAdminLoggedIn" class="modal-btn modal-btn-primary" @click="saveWantToPlayCount">保存</button>
           <template v-else>
-            <button v-if="hasUserWantToPlay(currentVenue, selectedDate, currentSlot)" 
-                    class="modal-btn modal-btn-danger" 
-                    @click="decrementWantToPlay"
-                    :disabled="wantToPlayButtonState !== 'idle'">
-              <span v-if="wantToPlayButtonState === 'idle'">取消想踢</span>
-              <span v-else-if="wantToPlayButtonState === 'loading'">提交中...</span>
-              <span v-else-if="wantToPlayButtonState === 'success'">✓ 已取消</span>
-            </button>
-            <button v-else 
-                    class="modal-btn modal-btn-primary" 
-                    @click="incrementWantToPlay"
-                    :disabled="wantToPlayButtonState !== 'idle'">
-              <span v-if="wantToPlayButtonState === 'idle'">想踢+1</span>
-              <span v-else-if="wantToPlayButtonState === 'loading'">提交中...</span>
-              <span v-else-if="wantToPlayButtonState === 'success'">✓ 已记录</span>
-            </button>
+            <template v-if="initialWantToPlayStatus">
+              <button class="modal-btn modal-btn-danger" 
+                      @click="decrementWantToPlay"
+                      :disabled="wantToPlayButtonState !== 'idle'">
+                <span v-if="wantToPlayButtonState === 'idle'">取消想踢</span>
+                <span v-else-if="wantToPlayButtonState === 'loading'">提交中...</span>
+                <span v-else-if="wantToPlayButtonState === 'success'">✓ 已取消</span>
+              </button>
+            </template>
+            <template v-else>
+              <button class="modal-btn modal-btn-primary" 
+                      @click="incrementWantToPlay"
+                      :disabled="wantToPlayButtonState !== 'idle'">
+                <span v-if="wantToPlayButtonState === 'idle'">想踢+1</span>
+                <span v-else-if="wantToPlayButtonState === 'loading'">提交中...</span>
+                <span v-else-if="wantToPlayButtonState === 'success'">✓ 已记录</span>
+              </button>
+            </template>
           </template>
         </div>
       </div>
@@ -735,6 +737,8 @@ const showSlotInfoModal = ref(false)
 const showAdminSlotModal = ref(false)
 const currentSlot = ref(null)
 const wantToPlayButtonState = ref('idle') // 'idle' | 'loading' | 'success'
+const initialWantToPlayStatus = ref(null) // 记录打开弹窗时的用户状态
+const wantToPlayRefreshLocked = ref(false) // 锁定想踢数据刷新
 // wantToPlayCache: { "venue_date": { "timeSlot": count } }
 const wantToPlayCache = ref({})
 const wantToPlayEditCount = ref(0)
@@ -1669,6 +1673,8 @@ async function incrementWantToPlay() {
   const currentCount = wantToPlayCache.value[cacheKey]?.[key] || 0
   const newCount = currentCount + 1
 
+  // 锁定想踢数据刷新，防止实时更新干扰
+  wantToPlayRefreshLocked.value = true
   // 设置为加载状态
   wantToPlayButtonState.value = 'loading'
 
@@ -1685,6 +1691,8 @@ async function incrementWantToPlay() {
     // 延迟关闭弹窗，让用户看到成功状态
     setTimeout(() => {
       showSlotInfoModal.value = false
+      // 弹窗关闭后解锁刷新
+      wantToPlayRefreshLocked.value = false
     }, 1500)
 
   } catch (error) {
@@ -1695,8 +1703,9 @@ async function incrementWantToPlay() {
       wantToPlayCache.value[cacheKey][key] = currentCount
     }
     
-    // 重置按钮状态
+    // 重置按钮状态并解锁
     wantToPlayButtonState.value = 'idle'
+    wantToPlayRefreshLocked.value = false
     alert('操作失败，请重试')
   }
 }
@@ -1720,6 +1729,8 @@ async function decrementWantToPlay() {
   const currentCount = wantToPlayCache.value[cacheKey]?.[key] || 0
   const newCount = Math.max(0, currentCount - 1)
 
+  // 锁定想踢数据刷新，防止实时更新干扰
+  wantToPlayRefreshLocked.value = true
   // 设置为加载状态
   wantToPlayButtonState.value = 'loading'
 
@@ -1736,6 +1747,8 @@ async function decrementWantToPlay() {
     // 延迟关闭弹窗，让用户看到成功状态
     setTimeout(() => {
       showSlotInfoModal.value = false
+      // 弹窗关闭后解锁刷新
+      wantToPlayRefreshLocked.value = false
     }, 1500)
 
   } catch (error) {
@@ -1746,8 +1759,9 @@ async function decrementWantToPlay() {
       wantToPlayCache.value[cacheKey][key] = currentCount
     }
     
-    // 重置按钮状态
+    // 重置按钮状态并解锁
     wantToPlayButtonState.value = 'idle'
+    wantToPlayRefreshLocked.value = false
     alert('操作失败，请重试')
   }
 }
@@ -1788,6 +1802,9 @@ function handleSlotClick(hour) {
   
   // 重置按钮状态
   wantToPlayButtonState.value = 'idle'
+  
+  // 记录打开弹窗时的用户想踢状态（保持按钮颜色一致）
+  initialWantToPlayStatus.value = hasUserWantToPlay(currentVenue.value, selectedDate.value, hour)
   
   // 获取想踢数量用于编辑
   wantToPlayEditCount.value = getWantToPlayCount(currentVenue.value, selectedDate.value, hour)
@@ -2209,8 +2226,10 @@ function subscribeToBookings() {
       table: 'want_to_play'
     }, (payload) => {
       console.log('收到 want_to_play 实时更新:', payload)
-      // 强制从数据库刷新想踢数据
-      fetchWantToPlayData(false)
+      // 如果刷新被锁定（用户正在操作），则跳过
+      if (!wantToPlayRefreshLocked.value) {
+        fetchWantToPlayData(false)
+      }
     })
     .subscribe()
 }
