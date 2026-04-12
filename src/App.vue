@@ -2900,6 +2900,7 @@ button:active {
   font-size: 12px;
   font-weight: 500;
   opacity: 0.5;
+  color: var(--text-secondary);
 }
 
 .tab-item.active .tab-icon,
