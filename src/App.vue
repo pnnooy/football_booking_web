@@ -3263,7 +3263,7 @@ button:active {
 /* ============ 帮助内容样式 ============ */
 .help-content {
   padding: 8px 8px 8px 8px;
-  max-height: 60vh;
+  max-height: 75vh;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
 }
