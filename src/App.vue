@@ -593,14 +593,24 @@
         <div class="modal-footer">
           <button class="modal-btn modal-btn-secondary" @click="showSlotInfoModal = false">关闭</button>
           <button v-if="isAdminLoggedIn" class="modal-btn modal-btn-primary" @click="saveWantToPlayCount">保存</button>
-          <button v-else 
-                  class="modal-btn modal-btn-primary" 
-                  @click="incrementWantToPlay"
-                  :disabled="wantToPlayButtonState !== 'idle'">
-            <span v-if="wantToPlayButtonState === 'idle'">想踢+1</span>
-            <span v-else-if="wantToPlayButtonState === 'loading'">提交中...</span>
-            <span v-else-if="wantToPlayButtonState === 'success'">✓ 已记录</span>
-          </button>
+          <template v-else>
+            <button v-if="hasUserWantToPlay(currentVenue, selectedDate, currentSlot)" 
+                    class="modal-btn modal-btn-danger" 
+                    @click="decrementWantToPlay"
+                    :disabled="wantToPlayButtonState !== 'idle'">
+              <span v-if="wantToPlayButtonState === 'idle'">取消想踢</span>
+              <span v-else-if="wantToPlayButtonState === 'loading'">提交中...</span>
+              <span v-else-if="wantToPlayButtonState === 'success'">✓ 已取消</span>
+            </button>
+            <button v-else 
+                    class="modal-btn modal-btn-primary" 
+                    @click="incrementWantToPlay"
+                    :disabled="wantToPlayButtonState !== 'idle'">
+              <span v-if="wantToPlayButtonState === 'idle'">想踢+1</span>
+              <span v-else-if="wantToPlayButtonState === 'loading'">提交中...</span>
+              <span v-else-if="wantToPlayButtonState === 'success'">✓ 已记录</span>
+            </button>
+          </template>
         </div>
       </div>
     </div>
@@ -1514,6 +1524,13 @@ function markUserWantToPlay(venue, date, timeSlot) {
   localStorage.setItem(key, 'true')
 }
 
+// 取消用户想踢标记
+function unmarkUserWantToPlay(venue, date, timeSlot) {
+  const deviceId = getDeviceId()
+  const key = `wantToPlay_${venue}_${date}_${timeSlot}_${deviceId}`
+  localStorage.removeItem(key)
+}
+
 // 公共函数：更新想踢数量（更新缓存和数据库）
 async function updateWantToPlayCount(venue, date, timeSlot, count) {
   const key = getWantToPlayKey(venue, date, timeSlot)
@@ -1672,6 +1689,57 @@ async function incrementWantToPlay() {
 
   } catch (error) {
     console.error('想踢+1失败:', error)
+    
+    // 回滚本地缓存
+    if (wantToPlayCache.value[cacheKey]) {
+      wantToPlayCache.value[cacheKey][key] = currentCount
+    }
+    
+    // 重置按钮状态
+    wantToPlayButtonState.value = 'idle'
+    alert('操作失败，请重试')
+  }
+}
+
+// 取消想踢
+async function decrementWantToPlay() {
+  if (!currentSlot.value) return
+
+  const venue = currentVenue.value
+  const date = selectedDate.value
+  const timeSlot = currentSlot.value
+  const cacheKey = `${venue}_${date}`
+
+  // 检查用户是否已经想踢过（不应该出现，但双重检查）
+  if (!hasUserWantToPlay(venue, date, timeSlot)) {
+    alert('您还没有表达过想踢的意愿！')
+    return
+  }
+
+  const key = getWantToPlayKey(venue, date, timeSlot)
+  const currentCount = wantToPlayCache.value[cacheKey]?.[key] || 0
+  const newCount = Math.max(0, currentCount - 1)
+
+  // 设置为加载状态
+  wantToPlayButtonState.value = 'loading'
+
+  try {
+    // 使用公共函数更新想踢数量
+    await updateWantToPlayCount(venue, date, timeSlot, newCount)
+
+    // 取消用户想踢标记
+    unmarkUserWantToPlay(venue, date, timeSlot)
+
+    // 设置为成功状态
+    wantToPlayButtonState.value = 'success'
+
+    // 延迟关闭弹窗，让用户看到成功状态
+    setTimeout(() => {
+      showSlotInfoModal.value = false
+    }, 1500)
+
+  } catch (error) {
+    console.error('取消想踢失败:', error)
     
     // 回滚本地缓存
     if (wantToPlayCache.value[cacheKey]) {
@@ -2990,6 +3058,16 @@ button:active {
 .modal-btn-primary {
   background: var(--accent);
   color: #fff;
+}
+
+.modal-btn-danger {
+  background: var(--danger);
+  color: #fff;
+}
+
+.modal-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 /* ============ 信息卡片样式 ============ */
