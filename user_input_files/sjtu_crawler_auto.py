@@ -14,9 +14,18 @@ from pathlib import Path
 from datetime import datetime
 from playwright.async_api import async_playwright
 
-# Supabase配置
-SUPABASE_URL = 'https://icsfrszpcjlhqkgyyvsy.supabase.co'
-SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imljc2Zyc3pwY2psaHFrZ3l5dnN5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI3MTE1MDQsImV4cCI6MjA4ODI4NzUwNH0.dr67tMTNfDJc6wfj2c6QJtk8RuFSC4DfJriSNZBOtck'
+# 尝试加载 .env 文件
+try:
+    from dotenv import load_dotenv
+    env_path = Path(__file__).parent.parent / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+except ImportError:
+    pass
+
+# Supabase配置 - 从环境变量读取
+SUPABASE_URL = os.getenv('SUPABASE_URL', '')
+SUPABASE_KEY = os.getenv('SUPABASE_KEY', '')
 
 # 场地配置
 VENUES = [
@@ -28,10 +37,10 @@ VENUES = [
     }
 ]
 
-# 账号配置
+# 账号配置 - 从环境变量读取
 ACCOUNT = {
-    'username': 'hanyufei24',
-    'password': 'qwerty'
+    'username': os.getenv('SJTU_USERNAME', ''),
+    'password': os.getenv('SJTU_PASSWORD', '')
 }
 
 BASE_URL = 'https://sports.sjtu.edu.cn'
@@ -271,11 +280,39 @@ def format_time_slots_data(venue_id, fields_data, date):
     return result
 
 
+def validate_config():
+    """验证必需的配置是否已设置"""
+    required_vars = [
+        ('SUPABASE_URL', SUPABASE_URL),
+        ('SUPABASE_KEY', SUPABASE_KEY),
+        ('SJTU_USERNAME', ACCOUNT['username']),
+        ('SJTU_PASSWORD', ACCOUNT['password'])
+    ]
+    
+    missing_vars = [name for name, value in required_vars if not value]
+    
+    if missing_vars:
+        print("❌ 错误：缺少必需的环境变量！")
+        print("\n请创建 .env 文件并设置以下变量：")
+        print("  SUPABASE_URL=your-supabase-url")
+        print("  SUPABASE_KEY=your-supabase-key")
+        print("  SJTU_USERNAME=your-username")
+        print("  SJTU_PASSWORD=your-password")
+        print("\n或者参考 .env.example 文件进行配置。")
+        return False
+    return True
+
+
 async def main():
     print("=" * 60)
     print("上海交大体育预约系统 - 自动更新版")
     print(f"运行时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
     print("=" * 60)
+    
+    # 验证配置
+    if not validate_config():
+        return
+    
     print(f"目标场地: {[v['name'] for v in VENUES]}")
     print(f"账号: {ACCOUNT['username']}")
     print("=" * 60)

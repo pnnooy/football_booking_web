@@ -1,0 +1,4 @@
+# 爬虫所需依赖
+requests
+playwright
+python-dotenv
