@@ -19,13 +19,15 @@ jobs:
 
       - name: 安装依赖
         run: |
-          pip install playwright requests
+          pip install playwright requests python-dotenv
           playwright install chromium --with-deps
 
       - name: 运行爬虫
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+          SJTU_USERNAME: ${{ secrets.SJTU_USERNAME }}
+          SJTU_PASSWORD: ${{ secrets.SJTU_PASSWORD }}
         run: |
           SCRIPT=$(find . -name "sjtu_crawler_auto.py" -type f | head -1)
           SCRIPT_DIR=$(dirname "$SCRIPT")
