@@ -1162,9 +1162,9 @@ const hourlyWeatherData = ref([])
 const weatherLoading = ref(false)
 
 // 和风天气配置
-const QWEATHER_API_KEY = '88a8f299cef84b979fd0f9ff434b57c3'
-const QWEATHER_API_HOST = 'nt63yxcqx8.re.qweatherapi.com'
-const QWEATHER_LOCATION = '101021200' // 上海闵行区
+const QWEATHER_API_KEY = import.meta.env.VITE_QWEATHER_API_KEY
+const QWEATHER_API_HOST = import.meta.env.VITE_QWEATHER_API_HOST
+const QWEATHER_LOCATION = import.meta.env.VITE_QWEATHER_LOCATION // 上海闵行区
 
 // 备注相关
 const showRemarkModal = ref(false)
