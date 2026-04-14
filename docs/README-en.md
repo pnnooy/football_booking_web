@@ -294,6 +294,7 @@ football_booking_web/
 ├── .github/
 │   └── workflows/
 │       └── sjtu-crawler.yml    # GitHub Actions crawler workflow
+├── .vscode/                     # VS Code configuration
 ├── public/
 │   ├── bg/                       # Background images
 │   └── icons/                    # Icon resources
@@ -312,8 +313,8 @@ football_booking_web/
 │   ├── fix.sql                   # Database fix script
 │   └── time_slots.sql            # time_slots table creation script
 ├── docs/                         # Documentation directory
-│   ├── README.md                 # Project documentation (Chinese)
 │   └── README-en.md              # Project documentation (English)
+├── README.md                     # Project documentation (Chinese)
 ├── index.html                    # HTML entry
 ├── package.json                  # Dependency config
 ├── vite.config.js                # Vite config
