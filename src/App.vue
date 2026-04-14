@@ -1172,11 +1172,6 @@ const remarkTime = ref('')
 const remarkText = ref('')
 const currentHour = ref(null)
 
-// 密码确认弹窗相关
-const showPasswordModal = ref(false)
-const passwordInput = ref('')
-const pendingAction = ref(null) // 待执行的操作：{ type: 'book'|'cancel', hour: number }
-
 // 确认弹窗相关
 const showConfirmModal = ref(false)
 const confirmMessage = ref('')
@@ -1387,8 +1382,7 @@ onMounted(async () => {
 
 // 检查是否有任何弹窗打开
 function hasAnyModalOpen() {
-  return showPasswordModal.value ||
-         showConfirmModal.value ||
+  return showConfirmModal.value ||
          showRemarkModal.value ||
          showFeedbackModal.value ||
          showSuggestionModal.value ||
@@ -1404,7 +1398,6 @@ function hasAnyModalOpen() {
 
 // 关闭所有弹窗
 function closeAllModals() {
-  showPasswordModal.value = false
   showConfirmModal.value = false
   showRemarkModal.value = false
   showFeedbackModal.value = false
@@ -1981,34 +1974,6 @@ function confirmToggle() {
   }
   showConfirmModal.value = false
   confirmHour.value = null
-}
-
-// 验证密码
-function verifyPassword() {
-  if (passwordInput.value === 'qwerty') {
-    // 密码正确，关闭密码弹窗，执行待执行的操作
-    showPasswordModal.value = false
-    passwordInput.value = ''
-
-    if (pendingAction.value) {
-      if (pendingAction.value.type === 'book') {
-        // 执行预约操作
-        confirmMessage.value = '确认预约该时段'
-        confirmHour.value = pendingAction.value.hour
-        showConfirmModal.value = true
-      } else if (pendingAction.value.type === 'cancel') {
-        // 执行取消预约操作
-        confirmMessage.value = '取消该时段的预约'
-        confirmHour.value = pendingAction.value.hour
-        showConfirmModal.value = true
-      }
-      pendingAction.value = null
-    }
-  } else {
-    // 密码错误
-    alert('密码错误，请重试')
-    passwordInput.value = ''
-  }
 }
 
 // 长按处理
