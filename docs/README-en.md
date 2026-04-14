@@ -154,7 +154,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ### Supabase Setup
 
 1. Create a Supabase project
-2. Execute `database-setup.sql` in SQL Editor
+2. Execute `database/setup.sql` in SQL Editor
 3. Enable Realtime feature
 4. Get URL and Anon Key
 
@@ -237,12 +237,14 @@ The project is configured with Vercel automatic deployment:
 3. Configure environment variables
 4. Push code to main branch, auto-deploy
 
+
+
 ### GitHub Actions Crawler
 
 The project includes an automatic crawler workflow that regularly syncs pitch status:
 
 - Workflow file: `.github/workflows/sjtu-crawler.yml`
-- Crawler code: `sjtu_crawler_auto.py`
+- Crawler code: `scripts/sjtu_crawler_auto.py`
 
 Configure Secrets:
 - `SUPABASE_URL`
@@ -297,21 +299,26 @@ football_booking_web/
 │   └── icons/                    # Icon resources
 ├── src/
 │   ├── assets/                   # Static assets
-│   ├── components/               # Components
 │   ├── App.vue                   # Main app component
 │   ├── main.js                   # Entry file
 │   ├── style.css                 # Global styles
 │   └── supabase.js               # Supabase config
-├── new_ui_demo/                  # UI design references
-├── database-setup.sql            # Database initialization script
-├── database-migration.sql        # Database migration script
-├── database-fix.sql              # Database fix script
-├── sjtu_crawler_auto.py          # Crawler script
+├── scripts/                      # Scripts directory
+│   ├── sjtu_crawler_auto.py      # Crawler script
+│   └── requirements-crawler.txt  # Crawler dependencies
+├── database/                     # Database scripts
+│   ├── setup.sql                 # Database initialization script
+│   ├── migration.sql             # Database migration script
+│   ├── fix.sql                   # Database fix script
+│   └── time_slots.sql            # time_slots table creation script
+├── docs/                         # Documentation directory
+│   ├── README.md                 # Project documentation (Chinese)
+│   └── README-en.md              # Project documentation (English)
 ├── index.html                    # HTML entry
 ├── package.json                  # Dependency config
 ├── vite.config.js                # Vite config
 ├── vercel.json                   # Vercel config
-└── README-en.md                  # Project documentation
+└── .env.example                  # Environment variables example
 ```
 
 ---

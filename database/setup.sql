@@ -12,7 +12,7 @@ CREATE TABLE bookings (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     venue TEXT NOT NULL CHECK (venue IN ('cage', 'pool')),
     date TEXT NOT NULL,
-    time_slot INTEGER NOT NULL CHECK (time_slot >= 14 AND time_slot <= 21),
+    time_slot INTEGER NOT NULL CHECK (time_slot &gt;= 14 AND time_slot &lt;= 21),
     remark TEXT DEFAULT '',
     status TEXT DEFAULT 'available' CHECK (status IN ('available', 'booked')),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

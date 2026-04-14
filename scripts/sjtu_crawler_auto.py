@@ -300,6 +300,18 @@ def validate_config():
         print("  SJTU_PASSWORD=your-password")
         print("\n或者参考 .env.example 文件进行配置。")
         return False
+    
+    # 验证 URL 格式
+    if not SUPABASE_URL.startswith('http'):
+        print(f"❌ 错误：SUPABASE_URL 格式无效: {SUPABASE_URL}")
+        print("请确保 URL 以 http:// 或 https:// 开头")
+        return False
+    
+    # 打印配置信息（部分隐藏）
+    print("配置信息:")
+    print(f"  SUPABASE_URL: {SUPABASE_URL}")
+    print(f"  SUPABASE_KEY: {SUPABASE_KEY[:20]}...")
+    print(f"  SJTU_USERNAME: {ACCOUNT['username']}")
     return True
 
 
@@ -375,8 +387,8 @@ async def main():
     print(f"{'='*60}")
 
     # 保存JSON文件 (使用相对路径，兼容GitHub Actions)
-    output_path = 'output/all_venues_booking_data.json'
-    Path('output').mkdir(exist_ok=True)
+    output_path = Path(__file__).parent.parent / 'output' / 'all_venues_booking_data.json'
+    Path(output_path.parent).mkdir(exist_ok=True)
 
     output_data = {
         'query_time': datetime.now().isoformat(),
