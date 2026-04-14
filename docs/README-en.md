@@ -294,7 +294,6 @@ football_booking_web/
 ├── .github/
 │   └── workflows/
 │       └── sjtu-crawler.yml    # GitHub Actions crawler workflow
-├── .vscode/                     # VS Code configuration
 ├── public/
 │   ├── bg/                       # Background images
 │   └── icons/                    # Icon resources

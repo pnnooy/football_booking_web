@@ -293,7 +293,6 @@ football_booking_web/
 ├── .github/
 │   └── workflows/
 │       └── sjtu-crawler.yml    # GitHub Actions 爬虫工作流
-├── .vscode/                     # VS Code 配置
 ├── public/
 │   ├── bg/                       # 背景图片
 │   └── icons/                    # 图标资源
