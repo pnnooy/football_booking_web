@@ -293,6 +293,7 @@ football_booking_web/
 ├── .github/
 │   └── workflows/
 │       └── sjtu-crawler.yml    # GitHub Actions 爬虫工作流
+├── .vscode/                     # VS Code 配置
 ├── public/
 │   ├── bg/                       # 背景图片
 │   └── icons/                    # 图标资源
@@ -312,6 +313,7 @@ football_booking_web/
 │   └── time_slots.sql            # time_slots 表创建脚本
 ├── docs/                         # 文档目录
 │   └── README-en.md              # 项目说明（英文）
+├── README.md                     # 项目说明（中文）
 ├── index.html                    # HTML 入口
 ├── package.json                  # 依赖配置
 ├── vite.config.js                # Vite 配置
