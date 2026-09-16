@@ -26,18 +26,9 @@ ALTER PUBLICATION supabase_realtime ADD TABLE time_slots;
 -- 3. 启用行级安全
 ALTER TABLE time_slots ENABLE ROW LEVEL SECURITY;
 
--- 4. 创建访问策略（允许所有用户操作）
+-- 4. 创建访问策略（所有人可读; 写入仅由爬虫的service_role密钥执行, 不受RLS限制）
 CREATE POLICY "Allow public read access" ON time_slots
     FOR SELECT USING (true);
-
-CREATE POLICY "Allow public insert access" ON time_slots
-    FOR INSERT WITH CHECK (true);
-
-CREATE POLICY "Allow public delete access" ON time_slots
-    FOR DELETE USING (true);
-
-CREATE POLICY "Allow public update access" ON time_slots
-    FOR UPDATE USING (true);
 
 -- 5. 创建索引
 CREATE INDEX IF NOT EXISTS idx_time_slots_venue_date ON time_slots(venue_id, date);

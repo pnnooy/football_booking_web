@@ -17,6 +17,11 @@ dist
 dist-ssr
 *.local
 
+# 爬虫产物 (含登录cookies, 严禁提交)
+output/
+__pycache__/
+.claude/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
