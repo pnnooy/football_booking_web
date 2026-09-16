@@ -22,6 +22,10 @@ output/
 __pycache__/
 .claude/
 
+# 服务器运维脚本 (含SSH口令, 严禁提交)
+scripts/ssh_exec.py
+scripts/deploy_once.py
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

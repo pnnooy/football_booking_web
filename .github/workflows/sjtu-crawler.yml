@@ -1,8 +1,8 @@
 name: SJTU体育场地数据同步
 
+# 定时抓取已迁移至腾讯云服务器 crontab (海外IP会触发jAccount二次验证, 无法自动登录)
+# 此工作流仅保留手动触发用于临时验证
 on:
-  schedule:
-    - cron: '0,30 * * * *'
   workflow_dispatch:
 
 jobs:
