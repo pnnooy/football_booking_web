@@ -208,13 +208,23 @@ async def jaccount_login(page):
 
     print("  正在OCR识别验证码...")
     ulogin = {'json': None}
+    seen_resp = []
 
     async def on_response(resp):
-        if '/jaccount/ulogin' not in resp.url:
+        url = resp.url
+        if 'jaccount' not in url:
+            return
+        if any(x in url for x in ['.css', '.js', '.ico', '.woff', '.svg']):
+            return
+        seen_resp.append(f'{resp.status} {url[:110]}')
+        if '/jaccount/ulogin' not in url:
             return
         try:
-            ulogin['json'] = json.loads(await resp.text())
-        except Exception:
+            body = await resp.text()
+            seen_resp.append(f'    ulogin body: {body[:200]}')
+            ulogin['json'] = json.loads(body)
+        except Exception as e:
+            seen_resp.append(f'    ulogin body读取失败: {e}')
             ulogin['json'] = None
 
     page.on('response', on_response)
@@ -259,7 +269,7 @@ async def jaccount_login(page):
             await page.locator('#submit-password-button').click()
 
             # 等服务端响应或跳转完成
-            for _ in range(24):
+            for _ in range(36):
                 if 'jaccount' not in page.url or ulogin['json'] is not None:
                     break
                 await asyncio.sleep(0.5)
@@ -275,17 +285,35 @@ async def jaccount_login(page):
             if code == 'WRONG_CAPTCHA':
                 print(f"  验证码错误 (提交'{captcha}'), 换图重试")
                 continue
-            if ulogin['json'] is None or ulogin['json'].get('errno') == 0:
-                # 无错误返回/服务端已通过: 等跳转离开jAccount
-                for _ in range(20):
-                    if 'jaccount' not in page.url:
-                        break
-                    await asyncio.sleep(0.5)
+
+            # 无响应或非标准响应: 再等跳转, 然后留下诊断现场
+            for _ in range(20):
                 if 'jaccount' not in page.url:
-                    print(f"  OK jAccount登录成功! captcha='{captcha}'")
-                    return True
-            print(f"  [ERR] 登录未成功: 响应={ulogin['json']}")
-            return False
+                    break
+                await asyncio.sleep(0.5)
+            if 'jaccount' not in page.url:
+                print(f"  OK jAccount登录成功! captcha='{captcha}'")
+                return True
+
+            diag_dir = OUTPUT_DIR / 'diag'
+            diag_dir.mkdir(parents=True, exist_ok=True)
+            try:
+                await page.screenshot(path=str(diag_dir / f'login_retry{retry}.png'))
+            except Exception as e:
+                print(f"  [诊断] 截图失败: {e}")
+            try:
+                text = (await page.locator('body').inner_text())[:300]
+            except Exception:
+                text = '<读取失败>'
+            print(f"  [诊断] retry={retry} 提交'{captcha}'后无跳转")
+            print(f"  [诊断] URL: {page.url[:130]}")
+            print(f"  [诊断] 页面文本: {text!r}")
+            print(f"  [诊断] jaccount响应链(最近10条):")
+            for line in seen_resp[-10:]:
+                print(f"    {line}")
+            # 可能是慢响应/瞬时风控: 换图进入下一轮
+            await page.evaluate("typeof refreshCaptcha==='function'&&refreshCaptcha()")
+            await asyncio.sleep(1)
     finally:
         page.remove_listener('response', on_response)
 

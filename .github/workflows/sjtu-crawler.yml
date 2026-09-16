@@ -40,4 +40,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: venue-data
-          path: ${{ github.workspace }}/**/output/all_venues_booking_data.json
+          path: |
+            ${{ github.workspace }}/**/output/all_venues_booking_data.json
+            ${{ github.workspace }}/**/output/diag/
