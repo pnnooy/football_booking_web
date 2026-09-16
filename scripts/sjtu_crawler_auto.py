@@ -305,6 +305,12 @@ async def jaccount_login(page):
                 text = (await page.locator('body').inner_text())[:300]
             except Exception:
                 text = '<读取失败>'
+            if '二次验证' in text:
+                print("  [ERR] 账号密码与图形验证码均已通过, 但jAccount要求二次验证(短信/邮箱/交我办)")
+                print("  [ERR] 这是海外IP/陌生浏览器环境触发的风控, 无法自动完成")
+                print("  [ERR] 解决: 在国内IP环境(本机)运行 save_auth.py 或直接运行爬虫完成一次登录,")
+                print("  [ERR] 并勾选'信任此浏览器'; 之后可用AUTH_STATE登录态供CI使用, 或改用本机定时运行")
+                return False
             print(f"  [诊断] retry={retry} 提交'{captcha}'后无跳转")
             print(f"  [诊断] URL: {page.url[:130]}")
             print(f"  [诊断] 页面文本: {text!r}")
