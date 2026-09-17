@@ -401,15 +401,25 @@ async def main():
 
             if need_login:
                 print("登录态已过期, 尝试自动登录...")
+                # 已失效的cookies会干扰oauth2/authorize的跳转流程(页面到不了jAccount),
+                # 登录前必须清空
+                await context.clear_cookies()
                 # ─── jAccount自动登录 ───
                 await page.goto(f'{BASE_URL}/pc/', timeout=30000)
                 await page.wait_for_load_state('networkidle')
                 await asyncio.sleep(2)
 
-                # 点击校内人员登录
-                await page.get_by_role("button", name="校内人员登录").click()
-                await asyncio.sleep(5)
-                await page.wait_for_load_state('networkidle')
+                # 点击校内人员登录 (最多3次尝试)
+                for attempt in range(3):
+                    await page.get_by_role("button", name="校内人员登录").click()
+                    await asyncio.sleep(5)
+                    await page.wait_for_load_state('networkidle')
+                    if 'jaccount' in page.url:
+                        break
+                    print(f"  未跳转到jAccount (第{attempt+1}次), 重试...")
+                    await page.goto(f'{BASE_URL}/pc/', timeout=30000)
+                    await page.wait_for_load_state('networkidle')
+                    await asyncio.sleep(2)
 
                 if 'jaccount' in page.url:
                     await page.wait_for_load_state('networkidle')
@@ -430,6 +440,19 @@ async def main():
                     await page.wait_for_load_state('networkidle')
                     await asyncio.sleep(2)
                 else:
+                    diag_dir = OUTPUT_DIR / 'diag'
+                    diag_dir.mkdir(parents=True, exist_ok=True)
+                    try:
+                        await page.screenshot(path=str(diag_dir / 'no_redirect.png'))
+                    except Exception:
+                        pass
+                    try:
+                        text = (await page.locator('body').inner_text())[:300]
+                    except Exception:
+                        text = '<读取失败>'
+                    print("  [诊断] 点击登录后未跳转, 现场:")
+                    print(f"  [诊断] URL: {page.url[:130]}")
+                    print(f"  [诊断] 页面文本: {text!r}")
                     print("  未跳转到jAccount, 登录流程异常")
                     await browser.close()
                     return
