@@ -333,7 +333,7 @@ football_booking_web/
 ### 作者
 
 - **pony**
-- 📧 Email: ***REMOVED***@sjtu.edu.cn
+- 📧 Email: hanyufei24@sjtu.edu.cn
 - 🔗 GitHub: [pnnooy](https://github.com/pnnooy)
 
 ### 项目链接
