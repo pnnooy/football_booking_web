@@ -461,6 +461,7 @@ async def main():
 
             # ─── 爬取数据 ───
             all_slots = []
+            failed_dates = 0
             for venue in VENUES:
                 print(f"\n--- {venue['name']} ---")
                 result = await call_api(page,
@@ -492,6 +493,7 @@ async def main():
                         print(f"    {date}: {n}可预约 共{len(slots)}条")
                     else:
                         print(f"    {date}: 失败")
+                        failed_dates += 1
 
         finally:
             await browser.close()
@@ -507,7 +509,12 @@ async def main():
             'slots': all_slots
         }, f, ensure_ascii=False, indent=2)
     print(f"JSON: {OUTPUT_DIR / 'all_venues_booking_data.json'}")
-    save_to_supabase(all_slots)
+    if failed_dates:
+        # 会话可能在抓取中途失效导致部分日期缺失;
+        # 只写部分数据会清掉库里的完整数据, 保守起见放弃本次写入
+        print(f"WARN: {failed_dates} 个日期查询失败, 本次不写入(保留旧完整数据), 等待下一轮")
+    else:
+        save_to_supabase(all_slots)
     print("=" * 50)
 
 
